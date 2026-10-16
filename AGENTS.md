@@ -30,7 +30,7 @@ The front door is the `hsa-review` skill ("open my HSA review"). On first use, r
 ## Repository rules
 
 - Never commit year folders, `images/`, PDFs, CSVs, `cookies.json`, or `.mcp.json`. User data lives outside this folder, and `python tools/check_personal_data.py` fails if a year folder or receipt is found inside it. `.gitignore` is a second layer.
-- Run the offline tests of the MCP server with `pytest` inside `mcp/amazon-orders`. They use synthetic data and make no Amazon requests.
+- Run the offline tests of the MCP server with `pytest` inside `mcp/amazon-orders`. They use synthetic data and make no Amazon requests. The one small live check (it lists one year of orders, reads one order page, and checks one product page; needs a sign-in from the last hour) is `python scripts/live_smoke_test.py` inside `mcp/amazon-orders`; it contacts Amazon, so run it only with the user's approval.
 - Before sharing or committing, run `python tools/check_personal_data.py`. It must report clean.
 
 ## Folders

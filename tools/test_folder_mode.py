@@ -347,6 +347,22 @@ def test_before_a_folder_is_chosen_only_the_welcome_the_folder_button_and_the_in
         assert page.locator(sel).first.is_visible(), sel
 
 
+def test_each_order_links_its_invoice_and_amazon_page_and_each_item_its_product_page(site):
+    browser, url = site
+    page = open_page(browser, url)
+    page.evaluate("async () => { const r = await (await window.__hsaRoot.getDirectoryHandle('2099')).getDirectoryHandle('receipts', { create: true }); const w = await (await r.getFileHandle('2099-01-05_order_amazon_TEST-ORDER-1.pdf', { create: true })).createWritable(); await w.write('%PDF-1.4'); await w.close(); }")
+    choose_folder(page)
+    first = page.locator("#list .order").first
+    assert first.locator("a.inv").inner_text() == "Invoice PDF"  # the saved file exists
+    assert page.evaluate("getComputedStyle(document.querySelector('a.inv'), '::before').content") == '"📄 "'  # a PDF icon, not the cart icon
+    assert first.locator("a[href*='order-details?orderID=TEST-ORDER-1']").inner_text() == "Order page"
+    other = page.locator("#all .order .noinv").first  # no invoice saved for this one
+    assert other.inner_text() == "No invoice" and other.get_attribute("title") == "Download with the next Amazon pull."
+    assert page.evaluate("orderLink('900-1234567-1234567', '2099-01-01')").count("order-details") == 0  # fake sample order: no Amazon link
+    assert page.evaluate("productLink('BFAKE00001')") == ""
+    assert "dp/B012345678" in page.evaluate("productLink('B012345678')")
+
+
 def test_change_folder_resets_the_page_only_when_a_different_folder_is_chosen(site):
     browser, url = site
     page = open_page(browser, url)

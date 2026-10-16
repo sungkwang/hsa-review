@@ -20,6 +20,13 @@ Amazon requests need the user's yes for each batch. Order pages also need a sign
 7. **Verify** after writing: run `python tools/test_review_page.py` in the project root (it must print PASSED for every check) and `python tools/check_evidence.py <year>`.
 8. **Report** counts: done, missing, and anything that needs the user's decision. Keep order details out of issues, commits, and shared notes.
 
+## Invoices (proof of purchase)
+
+An invoice is the order's printable summary saved as a PDF. It is the paper trail behind a claim, and the review page links each order to it ("Invoice PDF"; "No invoice" when none is saved). Save invoices only for items marked Eligible or Doctor's note / LMN, unless the user asks for all. When you pull an order's data anyway (step 5), pass `pdf_dir=<data folder>/<year>/receipts` to `fetch_print_pages`: the invoice is then saved from that same page load, at no extra request, and an order that already has its file is left alone. Use `save_invoices.py` below only for orders already pulled. Each invoice is an order-page load, so it counts in the batch plan and follows the same approval, pacing, one-hour sign-in, and stop-and-resume rules above.
+
+1. List the order numbers of those items, one per line, in a text file (blank lines and `#` comments are ignored).
+2. Run `python scripts/save_invoices.py "<data folder>/<year>/receipts" orders.txt` inside `mcp/amazon-orders`. It writes `<YYYY-MM-DD>_order_amazon_<order>.pdf`, skips orders that already have a file, and stops on a sign-in page.
+
 ## Rules
 
 - Run Python from the environment named in the project's agent rules, with script files, not long inline code.

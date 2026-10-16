@@ -31,11 +31,8 @@ within about three minutes, the request fails and you can try again.
 | Tool | Opens a browser? | Needs sign-in? | What it does |
 | --- | --- | --- | --- |
 | `refresh_session` | Yes, a visible sign-in window | — | Signs in and saves the session |
-| `check_auth_status` | No | No | Checks whether a session file exists |
-| `setup_authentication` | No | No | Shows the setup steps |
 | `get_order_history(year)` | Yes, invisible | Yes | Lists one year's orders, about 2–3 seconds per page |
 | `get_order(order_id)` | Yes, invisible | Yes | Totals, items, sellers, and ASINs for one order |
-| `match_transactions_by_amount` | Yes, invisible | Yes | Matches amounts to orders by date |
 | `check_asin_eligibility(asin)` | Yes, invisible | No | Reads the public product page for "FSA or HSA eligible" |
 
 "Invisible" means a headless browser loads the page in the background, and you

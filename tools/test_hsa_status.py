@@ -33,6 +33,26 @@ def test_missing_data_folder_names_the_next_step(tmp_path, monkeypatch):
     assert not step["ok"] and "setup" in step["next"]
 
 
+def test_invoices_lists_claimable_orders_that_have_no_invoice_file(tmp_path):
+    app = tmp_path / "2099" / "_app"
+    (tmp_path / "2099" / "receipts").mkdir(parents=True)
+    app.mkdir(parents=True)
+    orders = [
+        {"id": "111-0000000-0000001", "date": "January 5, 2099", "items": [{"marked": True}]},   # marked by Amazon, invoice saved
+        {"id": "111-0000000-0000002", "date": "January 6, 2099", "items": [{"marked": False}]},  # you set it to Eligible
+        {"id": "111-0000000-0000003", "date": "January 7, 2099", "items": [{"marked": False}]},  # not decided: no invoice wanted
+        {"id": "111-0000000-0000004", "date": "January 8, 2099", "items": [{"marked": True}]},   # you set it to Not eligible
+    ]
+    (app / "data.json").write_text(json.dumps({"ORDERS": orders, "ALL_ORDERS": [{"id": "111-0000000-0000005", "date": "January 9, 2099", "items": ["x"]}]}), encoding="utf-8")
+    (tmp_path / "2099" / "decisions.json").write_text(json.dumps({
+        "111-0000000-0000002|0": {"status": "Eligible"},
+        "111-0000000-0000004|0": {"status": "Not eligible"},
+        "ALL|111-0000000-0000005": {"status": "Need LMN"},
+    }), encoding="utf-8")
+    (tmp_path / "2099" / "receipts" / "2099-01-05_order_amazon_111-0000000-0000001.pdf").write_bytes(b"%PDF")
+    assert hsa.missing_invoices("2099", str(tmp_path)) == ["111-0000000-0000002", "111-0000000-0000005"]
+
+
 def test_year_with_data_and_decisions_is_checked_off(tmp_path):
     year = tmp_path / "2099"
     year.mkdir()
@@ -135,3 +155,16 @@ def test_page_shows_the_checklist_when_the_year_has_no_data(tmp_path):
 
 if __name__ == "__main__":
     sys.exit(pytest.main(["-v", "--tb=short", "-p", "no:cacheprovider", __file__]))
+
+
+def test_invoices_lists_claimable_orders_with_no_invoice_file(tmp_path):
+    year = tmp_path / "2099"
+    (year / "_app").mkdir(parents=True)
+    (year / "receipts").mkdir()
+    orders = [{"id": "A-1", "items": [{"marked": True}]}, {"id": "B-2", "items": [{"marked": False}]},
+              {"id": "C-3", "items": [{"marked": False}]}, {"id": "D-4", "items": [{"marked": True}]}]
+    (year / "_app" / "data.json").write_text(json.dumps({"ORDERS": orders, "ALL_ORDERS": [{"id": "E-5"}, {"id": "F-6"}]}), encoding="utf-8")
+    (year / "decisions.json").write_text(json.dumps({"B-2|0": {"status": "Need LMN"}, "D-4|0": {"status": "Not eligible"}, "ALL|E-5": {"status": "Eligible"}}), encoding="utf-8")
+    (year / "receipts" / "2099-01-01_order_amazon_A-1.pdf").write_bytes(b"%PDF")
+    # A-1 has its file; B-2 (marked by you as Need LMN) and E-5 (whole order, Eligible) do not; C-3 undecided, D-4 not eligible, F-6 undecided
+    assert hsa.missing_invoices("2099", str(tmp_path)) == ["B-2", "E-5"]

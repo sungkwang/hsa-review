@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- Each order links to its saved **Invoice PDF** (a gray "No invoice" when none is saved) and to its Amazon **Order page**; each item links to its **Product page**. The links are bordered buttons with a larger 📄 (invoice) or 🛒 (Amazon) icon.
+- `python tools/hsa.py invoices` lists orders marked Eligible or Doctor's note / LMN that have no invoice yet (offline).
+- The order pull can save each invoice PDF from the same page load that reads the data (`pdf_dir`), at no extra request.
+- `live_smoke_test.py --no-year-list` runs the live check with one order page and one product page.
+- **Choose receipts folder** is the one folder button, at the top. The page resets only if you pick a different folder. Before a folder is chosen, the page shows only a welcome message and "What to do first".
+
+### Removed
+- Unused parts of the Amazon MCP server: the `match_transactions_by_amount`, `setup_authentication` and `check_auth_status` tools, the keyring and `.env` sign-in code, the Node order lister, and `uv.lock`. Dependencies dropped: `keyring`, `python-dotenv`, and the dev extras `black`, `isort`, `mypy`.
+
 ## [0.1.0] - 2026-10-16
 
 First version.

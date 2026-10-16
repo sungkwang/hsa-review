@@ -33,13 +33,6 @@ def test_unsupported_parameters_are_reported_not_ignored(monkeypatch):
     assert "start_index" in out["error"]
 
 
-def test_status_hint_uses_a_supported_call(monkeypatch):
-    monkeypatch.setattr(server, "cookie_jar_exists", lambda: True)
-    monkeypatch.setattr(server, "load_credentials", lambda: None)
-    text = server.check_auth_status.__wrapped__() if hasattr(server.check_auth_status, "__wrapped__") else server.check_auth_status()
-    assert "time_filter" not in text
-    assert "get_order_history(year=2026)" in text
-
 def test_check_asin_tool_is_registered():
     names = [tool.name for tool in asyncio.run(server.mcp.list_tools())]
     assert "check_asin_eligibility" in names

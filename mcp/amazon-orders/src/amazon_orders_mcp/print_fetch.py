@@ -9,7 +9,7 @@ verification page, raise NonInteractiveAuthRequired (the server maps it to the
 import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from playwright.sync_api import sync_playwright
 
@@ -37,12 +37,16 @@ def fetch_print_pages(
     playwright_factory: Callable[[], Any] = sync_playwright,
     pause: Callable[[], None] = lambda: None,
     warn: Callable[[str], None] = lambda message: print("WARNING:", message, file=sys.stderr),
+    pdf_dir: Optional[Path] = None,
 ) -> None:
     """Fetch many orders in one browser session, one at a time.
 
     `on_result(order_id, text, html)` runs after each order. A sign-in page raises
     NonInteractiveAuthRequired before that order is reported, so the caller resumes
     from it after signing in. Anything else per order is the caller's to handle.
+
+    With `pdf_dir`, each order's page is also saved there as its invoice PDF from the same
+    page load (no extra request); an order that already has its file is left as it is.
     """
     for order_id in order_ids:
         if not ORDER_ID_RE.match(order_id):
@@ -55,6 +59,13 @@ def fetch_print_pages(
             page = context.new_page()
             for order_id in order_ids:
                 text, html = _load(page, order_id)
+                if pdf_dir:
+                    from amazon_orders_mcp.invoice import save_loaded_page
+
+                    try:
+                        save_loaded_page(page, order_id, text, Path(pdf_dir))
+                    except FileExistsError:
+                        pass
                 on_result(order_id, text, html)
                 pause()
 

@@ -9,7 +9,7 @@ match Amazon's current pages:
   3. check one ASIN's "FSA or HSA eligible" label on its public product page
 
 Run only with explicit approval, from the repo root:
-    python scripts/live_smoke_test.py --year 2026 --order 111-0000000-0000000 --asin B000000000
+    python scripts/live_smoke_test.py --year 2026 --order 111-0000000-0000000 --asin B000000000 [--no-year-list]
 """
 
 import argparse
@@ -47,6 +47,7 @@ def main() -> int:
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--order", required=True, help="One known order number to read")
     parser.add_argument("--asin", required=True, help="One ASIN to check for FSA/HSA eligibility")
+    parser.add_argument("--no-year-list", action="store_true", help="Skip the year list (several page loads); read one order and one product only")
     args = parser.parse_args()
 
     results = []
@@ -60,16 +61,17 @@ def main() -> int:
     def read_order():
         text, html = fetch_print_page(args.order, COOKIE_JAR_PATH, sync_playwright)
         parsed = parse_print_page(text, html)
-        validate_order_summary(parsed, f"order {args.order}", text)
+        validate_order_summary(parsed, "the order", text)
         return True, f"{len(parsed['items'])} items, grand total {parsed['grand_total']}"
 
     def check_asin():
         result = check_product_eligibility(args.asin, sync_playwright, today=None)
         return True, f"fsa_hsa_eligible={result['fsa_hsa_eligible']}, matched={result['matched_text']!r}"
 
-    results.append(check(f"list orders for {args.year}", list_year))
-    results.append(check(f"read order {args.order}", read_order))
-    results.append(check(f"eligibility for {args.asin}", check_asin))
+    if not args.no_year_list:
+        results.append(check(f"list orders for {args.year}", list_year))
+    results.append(check("read one order", read_order))  # labels leave out the order and product IDs so they stay out of logs
+    results.append(check("eligibility for one product", check_asin))
 
     print("\nAll checks passed." if all(results) else "\nSome checks failed. Nothing was saved except what the checks printed.")
     return 0 if all(results) else 1

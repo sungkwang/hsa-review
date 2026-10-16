@@ -4,6 +4,7 @@
   python tools/hsa.py setup  [--year 2026] [--data-dir PATH]    # one step at a time, checks each
   python tools/hsa.py open   [--year 2026] [--data-dir PATH]    # same as tools/open_review.py
   python tools/hsa.py shortcut                                  # a double-click shortcut on the desktop
+  python tools/hsa.py invoices [--year 2026] [--data-dir PATH]  # orders you marked Eligible or Doctor's note / LMN with no invoice yet
 
 `status` inspects what is already done and names the next step. Every route (an agent, a terminal, the
 review page) uses the same checklist, so the procedure is the same for everyone. Each failure ends with
@@ -191,6 +192,21 @@ def setup(year, cli_data_dir=None, ask=input, say=print, desktop=None, offer_sho
     return 0
 
 
+def missing_invoices(year, cli_data_dir=None):
+    """Order numbers with an item marked Eligible or Need LMN (Amazon's mark or yours) and no invoice file in receipts/."""
+    paths = year_paths(data_dir(cli_data_dir), year)
+    data = _load_json(paths.data) or {}
+    decisions = _load_json(paths.decisions) or {}
+
+    def claimable(key, marked):
+        return ((decisions.get(key) or {}).get("status") or ("Eligible" if marked else "Undecided")) in ("Eligible", "Need LMN")
+
+    wanted = [o["id"] for o in data.get("ORDERS", []) if any(claimable(f"{o['id']}|{i}", it.get("marked")) for i, it in enumerate(o["items"]))]
+    wanted += [o["id"] for o in data.get("ALL_ORDERS", []) if o["id"] not in wanted and claimable(f"ALL|{o['id']}", False)]
+    have = [f.name for f in paths.receipts.iterdir()] if paths.receipts.is_dir() else []
+    return [oid for oid in dict.fromkeys(wanted) if not any(n.endswith(f"_order_amazon_{oid}.pdf") for n in have)]
+
+
 def status_json(year, cli_data_dir=None):
     items = steps(year, cli_data_dir)
     first = next((i for i in items if not i["ok"]), None)
@@ -199,7 +215,7 @@ def status_json(year, cli_data_dir=None):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["status", "setup", "open", "shortcut"])
+    ap.add_argument("command", choices=["status", "setup", "open", "shortcut", "invoices"])
     ap.add_argument("--year", default=str(datetime.now().year))
     ap.add_argument("--data-dir")
     ap.add_argument("--json", action="store_true")
@@ -214,6 +230,11 @@ def main(argv=None):
         return 0 if path else 1
     if args.command == "setup":
         return setup(args.year, args.data_dir)
+    if args.command == "invoices":
+        missing = missing_invoices(args.year, args.data_dir)
+        print(f"{len(missing)} order(s) marked Eligible or Doctor's note / LMN have no invoice in receipts/." + (" Save them with the amazon-live-batch skill (one approved batch):" if missing else ""))
+        print(*missing, sep="\n")
+        return 0
     if args.json:
         print(json.dumps(status_json(args.year, args.data_dir), indent=1))
     else:

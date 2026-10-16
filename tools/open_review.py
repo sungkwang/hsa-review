@@ -57,6 +57,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if urlsplit(self.path).path == "/years.json":  # the year folders in the data folder, newest first
             years = sorted((d.name for d in self.data_dir.iterdir() if d.is_dir() and re.fullmatch(r"\d{4}", d.name)), reverse=True)
             return self._json({"years": years})
+        if urlsplit(self.path).path == "/receipts.json":  # file names in <year>/receipts/ (the page links each order to its invoice)
+            year = (parse_qs(urlsplit(self.path).query).get("year") or [""])[0]
+            if not re.fullmatch(r"\d{4}", year):
+                return self.send_error(400, "Bad year")
+            folder = self.data_dir / year / "receipts"
+            return self._json({"files": sorted(f.name for f in folder.iterdir() if f.is_file()) if folder.is_dir() else []})
         if urlsplit(self.path).path == "/status.json":  # the same checklist as `hsa.py status`
             import hsa
 

@@ -51,6 +51,9 @@ class FakePage:
     def evaluate(self, script):
         return self._texts.get(self._current(), "")
 
+    def content(self):
+        return "<html></html>"
+
     def pdf(self, path, **kwargs):
         self.record["pdf_kwargs"] = kwargs
         self.record.setdefault("pdfs", []).append(path)
@@ -169,3 +172,16 @@ def test_batch_rejects_bad_id_before_browsing(out_dir, jar):
     with pytest.raises(ValueError):
         save_order_invoices([ORDER, "bad"], out_dir, jar_path=jar, playwright_factory=_factory(page, record))
     assert record == {}
+
+
+def test_one_page_load_gives_the_data_and_the_invoice(out_dir, jar):
+    from amazon_orders_mcp.print_fetch import fetch_print_pages
+
+    record = {}
+    page = FakePage({ORDER: _summary(ORDER), OTHER: _summary(OTHER)}, record=record)
+    (out_dir / f"2026-01-01_order_amazon_{OTHER}.pdf").write_bytes(b"%PDF-old")  # already saved: left alone
+    seen = []
+    fetch_print_pages([ORDER, OTHER], lambda oid, t, h: seen.append(oid), jar_path=jar, playwright_factory=_factory(page, record), pdf_dir=out_dir)
+    assert seen == [ORDER, OTHER]  # the data was still read for both
+    assert [Path(p).name for p in record["pdfs"]] == [f"2026-01-01_order_amazon_{ORDER}.pdf"]  # only the new invoice was written
+    assert (out_dir / f"2026-01-01_order_amazon_{OTHER}.pdf").read_bytes() == b"%PDF-old"

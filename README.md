@@ -13,7 +13,7 @@ Review one tax year of HSA-eligible purchases. It pulls your Amazon order histor
 - `tools/`: `check_personal_data.py` (privacy scan, with tests), `check_evidence.py` (every medical bill has an image), `test_review_page.py` (checks the review page; run `python tools/test_review_page.py`), `organize_files.py` (sorts new PDFs into the year folder; plan only unless you add `--confirm`), `make_samples.py` (fake sample data, work in progress).
 - `skills/`: short task guides for LLM agents (see Skills below), and `skills/hsa-categorize/category_rules.json`, the one rules file read by the page and the Python tools.
 - `samples/`: fake data for trying the page and for tests.
-- `mcp/amazon-orders/`: the Amazon orders MCP server (code only), based on seanoliver/amazon-orders-mcp (MIT License).
+- `mcp/amazon-orders/`: the Amazon orders MCP server (code only), based on seanoliver/amazon-orders-mcp (MIT License). It also saves each order's invoice as a PDF in `receipts/`; the review page links every order to its invoice (see the `amazon-live-batch` skill).
 - `.mcp.json.example`: registration for the Amazon MCP server.
 
 ## Ways to start

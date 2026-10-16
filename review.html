@@ -1153,9 +1153,10 @@
 .ext { color:inherit; text-decoration:none; }
 .ext:hover { text-decoration:underline; color:var(--accent); }
 
-a.ext { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
-a.ext::after { content:" 🔗"; font-size:0.85em; text-decoration:none; display:inline-block; }
-a.ext:hover { text-decoration-thickness:2px; }
+a.ext { color:var(--accent); font-weight:600; text-decoration:none; border:1px solid currentColor; border-radius:6px; padding:1px 7px; white-space:nowrap; }
+a.ext::before { content:"🛒 "; font-size:1.15em; text-decoration:none; display:inline-block; }
+a.ext.inv::before { content:"📄 "; }
+a.ext:hover { background:var(--accent); color:#fff; }
 
 .muted, .meta, .sub, .skip-row, .reimb-label, .ovr-reset, .edited, .badge, .cat, .tot-lbl, .foot, .toolbar .totals .label { font-size:14px; }
 .edited { color:var(--muted); margin-left:4px; }
@@ -1195,6 +1196,7 @@ a.ext:hover { text-decoration-thickness:2px; }
 .stepbtn { justify-self:start; padding:5px 12px; border-radius:8px; border:1px solid var(--accent); background:var(--card); color:var(--accent); font-size:14px; font-weight:600; cursor:pointer; }
 .stepbtn.primary { background:var(--accent); color:#fff; }
 @media (max-width:700px) { .howto ol.steps li:not(:last-child)::after { display:none; } }
+.noinv { cursor:help; }
 body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choosing #saveFile, body.choosing .status-row, body.choosing #folderName, body.choosing .toolbar, body.choosing #selectbar, body.choosing #asof, body.choosing > header ~ header, body.choosing > header ~ main { display:none; }
 .folder-group { display:inline-flex; align-items:center; gap:8px; }
 .folder-name { font-size:15px; font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1315,7 +1317,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       let YEAR = /^\d{4}$/.test(YEAR_PARAM || "") ? YEAR_PARAM : null; // else the newest year folder
       let RULES, DATA_FILE, NO_DATA, SAVED_DECISIONS, DATA_AS_OF, YEAR_CONFIG, ORDERS, MEDICAL, ALL_ORDERS, SKIPPED_ORDERS, ASIN_INFO;
       let PRODUCT_MEMORY = {}, MY_PRODUCT = {}; // what you decided about each product (by product ID), in every year / in this year
-      const SRC = { mode: "", root: null, layout: "new", years: [], assetUrls: {}, appBase: "" };
+      const SRC = { mode: "", root: null, layout: "new", years: [], assetUrls: {}, appBase: "", receipts: new Set() }; // receipts: file names in <year>/receipts/
       const asset = p => (p ? (SRC.mode === "served" ? SRC.appBase + p : (SRC.assetUrls[p] || "")) : p);
 
       // The picked folder is remembered in the browser, so later visits need only one "Allow" click.
@@ -1364,6 +1366,8 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         const byYear = {};
         for (const y of SRC.years) byYear[y] = (await fetchJSON(`data/${y}/_app/product_decisions.json`, "product_decisions.json")) || (await fetchJSON(`data/${y}/product_decisions_${y}.json`, "product_decisions.json"));
         setMemory(byYear);
+        const rc = await fetchJSON(`receipts.json?year=${YEAR}`, "receipts list");
+        SRC.receipts = new Set((rc && rc.files) || []);
         return { data, decisions };
       }
       async function loadFromFolder(root) {
@@ -1391,6 +1395,10 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         const byYear = {};
         for (const y of SRC.years) byYear[y] = (await readFolderJSON(root, [y, "_app", "product_decisions.json"], "product_decisions.json")) || (await readFolderJSON(root, [y, `product_decisions_${y}.json`], "product_decisions.json"));
         setMemory(byYear);
+        try { // the saved receipts and invoices, so each order can link to its invoice
+          const rdir = await (await root.getDirectoryHandle(YEAR)).getDirectoryHandle("receipts");
+          for await (const [name, h] of rdir.entries()) if (h.kind === "file") SRC.receipts.add(name);
+        } catch (e) { if (e.name !== "NotFoundError") throw e; }
         try { // images become temporary addresses the page can show
           let imgDir = root;
           for (const p of (SRC.layout === "new" ? [YEAR, "_app", "images"] : ["images"])) imgDir = await imgDir.getDirectoryHandle(p);
@@ -1766,7 +1774,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         ${inHead ? "" : `<img class="thumb" src="${img(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`}
         <div>
           <div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} ${badge} ${chipHtml(likelihood(it.t, it.marked, it.asin))}</div>
-          <div class="title"><span>${nameHtml(it)} <span class="muted">· ${esc(it.seller)}</span></span>${single ? "" : `<span class="rt">${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, it.marked))}</span>`}</div>
+          <div class="title"><span>${nameHtml(it)}${productLink(it.asin)} <span class="muted">· ${esc(it.seller)}</span></span>${single ? "" : `<span class="rt">${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, it.marked))}</span>`}</div>
           ${it.note ? `<div class="meta">${esc(it.note)}</div>` : ""}
           ${suggestHtml(k, it.asin, it.marked)}
           <div class="decide">
@@ -1780,7 +1788,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
           return `<section class="order">
       <div class="order-head">
         <b>${esc(isoOf(o.date))}</b>
-        <span class="muted">Order ${orderLink(o.id)}</span>
+        <span class="muted">Order ${orderLink(o.id, o.date)}</span>
         ${single ? `<span class="muted">Total</span> ${ovrTotalHtml(single.k)} ${reimbControls(single.k, statusOf(single.k, single.it.marked))}` : ""}
       </div>
 
@@ -1837,8 +1845,26 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
   document.getElementById("skippedN").textContent = `(${list.length})`;
   document.getElementById("skipped").innerHTML = list.map(o => `<div class="skip-row"><b>${esc(isoOf(o.date))}</b> <span class="muted">Order ${esc(o.id)}</span> <span class="badge">${esc(o.reason)}</span><div class="muted">${o.items.map(esc).join(" · ")}</div></div>`).join("");
 }
-const orderLink = id => `<a class="ext" href="https://www.amazon.com/gp/your-account/order-details?orderID=${id}" target="_blank" rel="noopener">${esc(id)}</a>`;
-const nameHtml = it => it.asin ? `<a class="ext" href="https://www.amazon.com/dp/${it.asin}" target="_blank" rel="noopener">${esc(it.t)}</a>` : esc(it.t);
+// Links on each order: the saved invoice (from receipts/), the Amazon order page, and per item the product page. Fake sample orders (900-) and products (BFAKE) have no Amazon page.
+const productLink = asin => asin && !/^BFAKE/.test(asin) ? ` <a class="ext" href="https://www.amazon.com/dp/${esc(asin)}" target="_blank" rel="noopener">Product page</a>` : "";
+const invoiceLink = (id, date) => {
+  const name = `${isoOf(date)}_order_amazon_${id}.pdf`;
+  return SRC.receipts.has(name) ? `<a class="ext inv" href="#" data-inv="${esc(name)}">Invoice PDF</a>` : `<span class="muted noinv" title="Download with the next Amazon pull.">No invoice</span>`;
+};
+const orderLink = (id, date) => `${esc(id)} ${invoiceLink(id, date)}${/^900-/.test(id) ? "" : ` <a class="ext" href="https://www.amazon.com/gp/your-account/order-details?orderID=${esc(id)}" target="_blank" rel="noopener">Order page</a>`}`;
+const nameHtml = it => esc(it.t);
+document.addEventListener("click", async e => { // the invoice opens in a new tab, read through the picked folder (or served by the launcher)
+  const a = e.target.closest("[data-inv]");
+  if (!a) return;
+  e.preventDefault();
+  const name = a.dataset.inv;
+  if (SRC.mode === "served") { window.open(`data/${YEAR}/receipts/${encodeURIComponent(name)}`, "_blank"); return; }
+  const tab = window.open("", "_blank");
+  try {
+    const file = await (await (await (await SRC.root.getDirectoryHandle(YEAR)).getDirectoryHandle("receipts")).getFileHandle(name)).getFile();
+    tab.location = URL.createObjectURL(new Blob([file], { type: "application/pdf" }));
+  } catch (err) { if (tab) tab.close(); setStatus(`Could not open ${name}: ${err.message}`); }
+});
 function unmarkedItems() {
   return ORDERS.flatMap(o => o.items.map((it, i) => ({ o, it, k: keyOf(o, i) }))).filter(x => !x.it.marked);
 }
@@ -1865,12 +1891,12 @@ const foldOpen = {};
 function unmarkedRow({ o, it, k }) {
   const d = decisions[k] || {};
   return `<section class="order">
-      <div class="order-head"><b>${esc(isoOf(o.date))}</b><span class="muted">Order ${orderLink(o.id)}</span><span class="muted">Total</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}</div>
+      <div class="order-head"><b>${esc(isoOf(o.date))}</b><span class="muted">Order ${orderLink(o.id, o.date)}</span><span class="muted">Total</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}</div>
       <div class="item">
         <img class="thumb" src="${img(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
         <div>
           <div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} <span class="badge no">Not marked</span> ${chipHtml(likelihood(it.t, false, it.asin))}</div>
-          <div class="title"><span>${nameHtml(it)} <span class="muted">· ${esc(it.seller)}</span></span></div>
+          <div class="title"><span>${nameHtml(it)}${productLink(it.asin)} <span class="muted">· ${esc(it.seller)}</span></span></div>
           ${suggestHtml(k, it.asin, false)}
           <div class="decide">
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, false))}</select>
@@ -1886,13 +1912,13 @@ function otherRow(o, k) {
   return `<section class="order">
       <div class="order-head">
         <b>${esc(isoOf(o.date))}</b>
-        <span class="muted">Order ${orderLink(o.id)}</span>
+        <span class="muted">Order ${orderLink(o.id, o.date)}</span>
         <span class="muted">Total</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}
       </div>
       <div class="item">
         ${o.img ? `<img class="thumb" src="${img(o.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div></div>`}
         <div>
-          ${o.items.map((t, idx) => `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(t, idx === 0 ? o.asin : "")} ${idx === 0 ? chipHtml(lk) : ""}</div><div class="title">${esc(t)}</div>`).join("")}
+          ${o.items.map((t, idx) => `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(t, idx === 0 ? o.asin : "")} ${idx === 0 ? chipHtml(lk) : ""}</div><div class="title">${esc(t)}${idx === 0 ? productLink(o.asin) : ""}</div>`).join("")}
           ${suggestHtml(k, o.asin, false)}
           <div class="decide">
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, false))}</select>
@@ -2102,7 +2128,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
         const card = (date, id, total, body, k, img_, note, store, full) => {
           const d = decisions[k] || {};
           return { d: isoOf(date), html: `<section class="order">
-      <div class="order-head"><b>${esc(isoOf(date))}</b><span class="muted">${/^Order \d/.test(id) ? `Order ${orderLink(id.slice(6))}` : esc(id)}</span><span class="muted">${total}</span>${total ? reimbControls(k, statusOf(k, false)) : ""}</div>
+      <div class="order-head"><b>${esc(isoOf(date))}</b><span class="muted">${/^Order \d/.test(id) ? `Order ${orderLink(id.slice(6), date)}` : esc(id)}</span><span class="muted">${total}</span>${total ? reimbControls(k, statusOf(k, false)) : ""}</div>
       <div class="item">
         ${img_ ? `<img class="thumb" src="${esc(img_)}"${full ? ` data-full="${esc(full)}"` : ""} alt="" loading="lazy">` : `<div></div>`}
         <div>

@@ -1,7 +1,7 @@
 """Amazon Orders MCP Server — main server implementation.
 
-Exposes Amazon.com personal order history and payment transactions as MCP tools
-by wrapping the `amazon-orders` Python library.
+Exposes Amazon.com personal order history, single orders, and product-page
+eligibility labels as MCP tools, using a real browser session.
 
 All tools that perform network I/O are `async def` and dispatch their blocking
 work to a worker thread via `asyncio.to_thread()`. Each tool is additionally
@@ -12,46 +12,26 @@ Amazon request can never freeze the MCP server's event loop.
 import asyncio
 import json
 import logging
-from datetime import date, timedelta
-from typing import Any, Callable, Dict, List, Optional, cast
+from datetime import date
+from typing import Any, Callable, Dict, Optional
 
 import truststore
 
 truststore.inject_into_ssl()  # use the Windows certificate store (corporate/AV proxies)
 
-from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from amazon_orders_mcp.client import NonInteractiveAuthRequired
-from amazon_orders_mcp.secure_session import cookie_jar_exists, load_credentials
 from amazon_orders_mcp.session_capture import capture_session
 from amazon_orders_mcp.errors import ParseStructureError
 from amazon_orders_mcp.print_fetch import PRINT_URL, fetch_print_page
 from amazon_orders_mcp.print_parser import parse_print_page, validate_order_summary
-from amazon_orders_mcp.order_list import list_orders_for_year, match_orders_by_amount
+from amazon_orders_mcp.order_list import list_orders_for_year
 from amazon_orders_mcp.product_check import check_product_eligibility
-
-
-class TransactionQuery(BaseModel):
-    """A single external-transaction lookup request for `match_transactions_by_amount`.
-
-    Extra fields on the input dict are preserved and echoed back in the response,
-    so callers can round-trip their own metadata (e.g. account name, memo).
-    """
-
-    model_config = ConfigDict(extra="allow")
-
-    date: date
-    amount: float
-    window_days: int = Field(default=3, ge=0, le=30)
-    id: Optional[str] = None
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 mcp = MCPServer("Amazon Orders MCP Server")
 
@@ -135,66 +115,8 @@ def _with_auto_refresh(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 # ---------------------------------------------------------------------------
-# Auth / status tools
+# Sign-in tool
 # ---------------------------------------------------------------------------
-
-
-@mcp.tool()
-def setup_authentication() -> str:
-    """Get instructions for setting up Amazon authentication."""
-    return """🛒 Amazon Orders MCP — Sign-in is required first
-
-Amazon blocks scripted sign-in, so this server uses the session from a real
-browser window. Sign in once before the order tools will work.
-
-1️⃣  Call the `refresh_session` tool. A Chromium window opens on Amazon's
-    sign-in page.
-
-2️⃣  Sign in as usual, including any 2FA code. The window closes when the
-    session is saved to ~/.amazon-orders-mcp/cookies.json.
-
-3️⃣  Then these tools work without another sign-in:
-    • get_order_history(year) - orders for one year
-    • get_order(order_id) - totals and items for one order
-    • match_transactions_by_amount - match bank amounts to orders
-    • check_asin_eligibility(asin) - "FSA or HSA eligible" label (no sign-in)
-
-✅ No password is stored; only the session cookies
-🔁 If Amazon ends the session, the order tools open the sign-in window once
-   and retry automatically. If sign-in isn't finished in about 3 minutes,
-   the request fails; try again."""
-
-
-@mcp.tool()
-def check_auth_status() -> str:
-    """Check if cookies are stored and usable.
-
-    This tool does not hit Amazon — it only checks local file presence and
-    queries the keyring. Safe to call at any time.
-    """
-    has_cookies = cookie_jar_exists()
-    creds = load_credentials()
-    has_creds = creds is not None
-
-    status_lines = []
-
-    if has_cookies:
-        status_lines.append("✅ Cookie jar exists at ~/.amazon-orders-mcp/cookies.json")
-        status_lines.append(
-            "   Try `get_order_history(year=2026)` to verify they still work."
-        )
-    else:
-        status_lines.append("❌ No cookie jar found")
-        status_lines.append(
-            "   Call the `refresh_session` tool to sign in and save a session."
-        )
-
-    if has_creds:
-        status_lines.append(
-            "\nℹ️  Credentials also found in keyring (optional fallback)"
-        )
-
-    return "\n".join(status_lines)
 
 
 REFRESH_TIMEOUT_DEFAULT = 180
@@ -304,69 +226,6 @@ async def get_order(order_id: str) -> str:
         order_id,
         timeout=TIMEOUT_SINGLE_CALL + REFRESH_TIMEOUT_DEFAULT,
         tool_name="get_order",
-    )
-
-
-# ---------------------------------------------------------------------------
-# Transaction tools
-# ---------------------------------------------------------------------------
-
-
-def _blocking_match_transactions_by_amount(
-    parsed_queries: List[TransactionQuery],
-    tolerance: float,
-) -> str:
-    if not parsed_queries:
-        return _json([])
-    earliest = min(q.date - timedelta(days=q.window_days) for q in parsed_queries)
-    latest = max(q.date + timedelta(days=q.window_days) for q in parsed_queries)
-    orders: List[Dict[str, Any]] = []
-    for year in sorted({earliest.year, latest.year}):
-        orders.extend(list_orders_for_year(year))
-    queries = [q.model_dump() for q in parsed_queries]
-    return _json(match_orders_by_amount(orders, queries, tolerance))
-
-
-@mcp.tool()
-async def match_transactions_by_amount(
-    queries: List[Dict[str, Any]],
-    tolerance: float = 0.01,
-) -> str:
-    """Cross-reference external transactions (e.g. bank/credit card) against Amazon orders.
-
-    Convenience tool for the Monarch-review workflow: given a list of
-    {date, amount} pairs, find Amazon transactions that plausibly match.
-
-    Args:
-        queries: List of dicts with keys:
-            - `date` (str YYYY-MM-DD): external transaction date
-            - `amount` (float): external amount as it appears on the bank
-              statement — negative for purchases, positive for refunds
-            - `id` (str, optional): your own identifier to round-trip
-            - `window_days` (int, optional, default 3, max 30): how many
-              days of slop to allow around the date when matching
-            - Any additional fields are preserved and echoed back in the
-              response for round-tripping caller metadata.
-        tolerance: Dollar tolerance for amount matches. Default $0.01.
-
-    Returns:
-        JSON array of {query, match_count, matches} objects.
-    """
-    try:
-        parsed_queries = [TransactionQuery.model_validate(q) for q in queries]
-    except ValidationError as e:
-        return _error(
-            "Invalid queries payload — each entry needs `date` (YYYY-MM-DD) "
-            "and `amount` (number).",
-            validation_errors=e.errors(include_url=False),
-        )
-
-    return await _run_blocking(
-        _with_auto_refresh(_blocking_match_transactions_by_amount),
-        parsed_queries,
-        tolerance,
-        timeout=TIMEOUT_PAGED_CALL + REFRESH_TIMEOUT_DEFAULT,
-        tool_name="match_transactions_by_amount",
     )
 
 

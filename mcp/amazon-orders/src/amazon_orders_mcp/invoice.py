@@ -45,10 +45,18 @@ def _save_one(page: Any, order_id: str, output_dir: Path) -> Path:
     page.wait_for_timeout(2000)
     if needs_sign_in(page.url):
         raise NonInteractiveAuthRequired(f"Amazon is asking for sign-in or verification; sign in needed. ({describe_sign_in(page.url)})")
-    text = page.evaluate("() => document.body.innerText")
+    return save_loaded_page(page, order_id, page.evaluate("() => document.body.innerText"), output_dir)
+
+
+def save_loaded_page(page: Any, order_id: str, text: str, output_dir: Path) -> Path:
+    """Save the summary page that is already open (its visible `text` was just read) as a PDF.
+
+    Lets a caller that reads the page for data also keep the invoice without a second
+    request. Raises FileExistsError if the file is already there.
+    """
     order_date = parse_print_text(text)["order_date"]
     if not order_date:
-        raise ParseStructureError("No order date on the summary page.", url=url, snippet=snippet_of(text))
+        raise ParseStructureError("No order date on the summary page.", url=page.url, snippet=snippet_of(text))
 
     target = output_dir / invoice_filename(order_date, order_id)
     if target.exists():
