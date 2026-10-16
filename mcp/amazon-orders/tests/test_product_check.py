@@ -59,7 +59,7 @@ def test_label_present_is_reported_with_matched_text():
 
 
 def test_label_absent_is_reported_as_not_eligible():
-    out = check_product_eligibility("B0CZGVZPKQ", playwright_factory=_factory("Just a product page", {}), today=date(2026, 10, 14))
+    out = check_product_eligibility("BFAKE00004", playwright_factory=_factory("Just a product page", {}), today=date(2026, 10, 14))
     assert out["fsa_hsa_eligible"] is False
     assert out["matched_text"] is None
 

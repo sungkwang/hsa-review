@@ -60,9 +60,9 @@ def test_item_links_match_items_by_position():
 
     html = (Path(__file__).parent / "fixtures" / "print_item_links.txt").read_text(encoding="utf-8")
     links = item_links(html)
-    assert links[0] == {"asin": "B0D8B5M9K1", "image_id": "71gCJU6br-L"}
-    assert links[2000] == {"asin": "B01EAS3ER8", "image_id": "51egPDp3D1L"}
-    assert links[3000]["asin"] == "B0CZGVZPKQ"
+    assert links[0] == {"asin": "BFAKE00001", "image_id": "FAKEIMG0001-L"}
+    assert links[2000] == {"asin": "BFAKE00003", "image_id": "FAKEIMG0003-L"}
+    assert links[3000]["asin"] == "BFAKE00004"
 
 
 def test_parse_print_page_attaches_asin_to_each_item(parsed):
@@ -72,9 +72,9 @@ def test_parse_print_page_attaches_asin_to_each_item(parsed):
     html = (Path(__file__).parent / "fixtures" / "print_item_links.txt").read_text(encoding="utf-8")
     result = parse_print_page(text, html)
     by_seller = {i["seller"]: i for i in result["items"]}
-    assert by_seller["Sample Seller A"]["asin"] == "B0D8B5M9K1"
-    assert by_seller["Sample Seller C"]["asin"] == "B01EAS3ER8"
-    assert by_seller["Sample Seller C"]["image_id"] == "51egPDp3D1L"
+    assert by_seller["Sample Seller A"]["asin"] == "BFAKE00001"
+    assert by_seller["Sample Seller C"]["asin"] == "BFAKE00003"
+    assert by_seller["Sample Seller C"]["image_id"] == "FAKEIMG0003-L"
 
 
 def test_validate_accepts_a_complete_summary(parsed):

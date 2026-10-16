@@ -114,6 +114,13 @@ def test_invented_order_numbers_and_a_license_with_the_authors_name_are_allowed(
     assert scan(code) == []
 
 
+def test_a_real_looking_product_id_is_flagged_but_invented_ones_are_allowed(tmp_path):
+    (tmp_path / "ok.py").write_text('IDS = ["BFAKE00001", "B000000000", "B012345678"]\n', encoding="utf-8")
+    assert scan(tmp_path) == []
+    (tmp_path / "notes.md").write_text("Item " + "B0" + "ABCDEFGH" + "\n", encoding="utf-8")  # built in two parts so this test file is not flagged itself
+    assert any("Amazon product ID" in p for p in scan(tmp_path))
+
+
 def test_a_real_looking_order_number_or_a_name_in_a_readme_is_still_flagged(tmp_path, monkeypatch):
     terms = tmp_path / "terms.txt"
     terms.write_text("Example Person\n", encoding="utf-8")

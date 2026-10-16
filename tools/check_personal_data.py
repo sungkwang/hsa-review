@@ -23,6 +23,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 ORDER_RE = re.compile(r"\b\d{3}-\d{7}-\d{7}\b")
 # Obviously invented order numbers: a 900- prefix, a middle part of one repeated digit (0000000, 2222222), or 1234567
 FAKE_ORDER_RE = re.compile(r"(?:900-\d{7}-\d{7}|\d{3}-(?:(\d)\1{6}|1234567)-\d{7})")
+# Product IDs (ASINs) the same way: outside samples/, only invented ones may appear (BFAKE##### never matches the pattern below)
+ASIN_LIKE_RE = re.compile(r"\bB0[0-9A-Z]{8}\b")
+FAKE_ASIN_RE = re.compile(r"B0{9}|B012345678")
 LICENSE_RE = re.compile(r"^LICENSE(\.md|\.txt)?$", re.I)  # a license names its copyright holder on purpose
 BAD_NAME_RES = [
     re.compile(r"^\d{4}$"),                       # year folders such as 2026/
@@ -175,6 +178,9 @@ def scan(root):
         for m in ORDER_RE.finditer(text):
             if not FAKE_ORDER_RE.fullmatch(m.group(0)):  # invented numbers can never match a real order
                 problems.append(f"{rel}: Amazon order number {m.group(0)}")
+        for m in ASIN_LIKE_RE.finditer(text):
+            if not FAKE_ASIN_RE.fullmatch(m.group(0)):  # a real-looking product ID can show what was bought; use BFAKE#####
+                problems.append(f"{rel}: Amazon product ID {m.group(0)} (use an invented one such as BFAKE00001)")
         for term in terms:
             if term in text and not LICENSE_RE.match(path.name):
                 problems.append(f"{rel}: contains a personal term")

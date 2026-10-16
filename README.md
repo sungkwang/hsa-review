@@ -132,6 +132,7 @@ The project includes an Amazon MCP server in [`mcp/amazon-orders/`](mcp/amazon-o
 ### Safety Constraints
 - **Read-only:** Tools only inspect order history and public product pages. They never buy, add to cart, or modify account settings.
 - **Explicit approval:** The assistant must ask for your confirmation before making any live Amazon requests.
+- **Unofficial, for your own account:** Not affiliated with or endorsed by Amazon. It reads only your own account, with your own sign-in, for your own records. Amazon's terms of use may restrict automated access, so check them and use it at your own risk.
 - **Session expiry:** Order pages require an Amazon session active within the last hour.
 - **Setup & Mechanics:** Copy [`.mcp.json.example`](.mcp.json.example) to `.mcp.json` or configure in your client. See [`mcp/amazon-orders/README.md`](mcp/amazon-orders/README.md) for setup and [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) for internal data flow.
 
@@ -176,7 +177,7 @@ Your AI assistant runs these commands for you, but you can also run them manuall
 
 ---
 
-*Disclaimer: Not tax or legal advice. Check your HSA administrator rules and IRS Publication 502 before filing claims.*
+*Disclaimer: Not tax or legal advice. Check your HSA administrator rules and IRS Publication 502 before filing claims. Not affiliated with Amazon; check Amazon's terms of use before using the Amazon reader.*
 
 
 
