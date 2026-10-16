@@ -1,6 +1,54 @@
 # How it works
 
-For the jobs and the flowchart, see `README.md`.
+This document explains the architecture, component roles, data flow, and MCP mechanics behind HSA Receipt Review.
+
+## Component Roles (Who Does What)
+
+| Component | Role | What it handles |
+|---|---|---|
+| **You** | Decision-maker | Signs in to Amazon once, approves live tool runs, reviews eligibility in the web dashboard, and approves claim exports. |
+| **LLM Agent** | Workflow driver | Interacts via chat (Claude Code, Cursor, Gemini, etc.), calls read-only tools, drafts item eligibility notes against IRS rules, and organizes files. |
+| **MCP Server** (`amazon-orders-mcp`) | Data fetcher | Read-only Python service providing MCP tools to fetch Amazon order history, line items, and invoice PDFs safely using your local session. |
+| **Review Dashboard** (`review.html`) | Visual interface | Pure HTML/JS browser interface running directly in Chrome/Edge. Reads and writes your local data folder using native browser file access without needing Python. |
+
+## Data Flowchart
+
+```text
+ 1. Sign In (You)
+    └── One-time Amazon login via Chromium window; session cookies stored in ~/.amazon-orders-mcp/
+
+ 2. Gather Data (LLM + MCP Server)
+    ├── You approve each batch request
+    ├── MCP server reads order pages and downloads invoice PDFs into <data folder>/<year>/receipts/
+    └── You place medical bills, pharmacy receipts, and EOBs into receipts/
+
+ 3. Categorize & Draft (LLM)
+    ├── LLM checks items against IRS Publication 502 criteria
+    └── Writes processed order data to <data folder>/<year>/_app/data.json
+
+ 4. Review & Decide (Review Dashboard — No Python)
+    ├── You open review.html directly in Chrome or Edge
+    ├── Page connects to your local data folder using native browser File System access
+    ├── Set status: Eligible, Not eligible, or Need LMN
+    └── Auto-saves choices to <data folder>/<year>/decisions.json
+
+ 5. Export (Browser)
+    └── Generate Claim Report PDF, Medical Evidence PDF, or CSV export for tax filing
+```
+
+## Model Context Protocol (MCP) Mechanics
+
+The Amazon MCP server (`mcp/amazon-orders/`) runs locally as a standard [Model Context Protocol](https://modelcontextprotocol.io) server.
+
+- **Session Handling:** The server uses your authenticated Amazon session saved in `~/.amazon-orders-mcp/cookies.json`. It does not store passwords.
+- **Read-Only Operation:** Tools only scrape order lists, order details, and product badges. The server cannot place orders, edit account settings, or add items to cart.
+- **Tools Provided:**
+  - `refresh_session`: Launches Chromium for sign-in and captures the fresh session.
+  - `get_order_history(year)`: Scrapes orders for the requested year.
+  - `get_order(order_id)`: Extracts items, prices, sellers, and saves invoice PDFs.
+  - `check_asin_eligibility(asin)`: Inspects public Amazon product pages for the "FSA or HSA eligible" badge without requiring sign-in.
+- **Safety Boundaries:** Live Amazon order pages require a sign-in active within the last hour (`max_auth_age=3600`). If expired, it halts and requests a session refresh.
+
 
 ## Where data lives
 
