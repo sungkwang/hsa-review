@@ -1,5 +1,7 @@
 # How it works
 
+**English** | [한국어](HOW_IT_WORKS.ko.md)
+
 This document explains the architecture, component roles, data flow, and MCP mechanics behind HSA Receipt Review.
 
 ## Component Roles (Who Does What)

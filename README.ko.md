@@ -4,9 +4,9 @@
 
 세금 신고를 위해 HSA 적격 구매 내역과 의료 영수증을 검토하고 정리하는, 내 컴퓨터에서만 돌아가는 비공개 대시보드입니다.
 
-건강저축계좌(HSA)는 자격이 되는 의료비를 세금 없이 쓸 수 있게 해 주지만, 정말 자격이 되는 항목만 해당하고 영수증으로 증빙해야 합니다. 이 도구는 1년치 구매 내역을 적격, 의사 소견서 필요, 부적격으로 분류하고 환급받은 내역을 기록합니다. [HSA에 대해 더 보기](#hsa-소개와-이-도구가-필요한-이유)
+건강저축계좌(HSA)에서는 적격 의료비를 세금 없이 쓸 수 있지만, 실제로 적격인 항목만 해당되고 영수증으로 증빙해야 합니다. 이 도구는 1년치 구매 내역을 적격, 의사 소견서 필요, 부적격으로 분류하고 환급받은 내역을 기록합니다. [HSA에 대해 더 보기](#hsa-소개와-이-도구가-필요한-이유)
 
-이 프로젝트는 **LLM 사용자**(Claude Code, Cursor, Gemini CLI 등)를 위해 만들어졌습니다. Python 스크립트를 직접 작성하거나 실행할 필요가 없습니다. AI 어시스턴트가 파일을 관리하고, 진행 상황을 확인하고, 백그라운드에서 주문을 가져오는 동안 여러분은 브라우저 대시보드에서 모든 내용을 눈으로 확인하고 승인합니다. 구조와 데이터 흐름은 [HOW_IT_WORKS.md](HOW_IT_WORKS.md)(영어)를 참고하세요.
+이 프로젝트는 **LLM 사용자**(Claude Code, Cursor, Gemini CLI 등)를 위해 만들어졌습니다. Python 스크립트를 직접 작성하거나 실행할 필요가 없습니다. AI 어시스턴트가 파일을 관리하고, 진행 상황을 확인하고, 백그라운드에서 주문을 가져오는 동안 사용자는 브라우저 대시보드에서 모든 내용을 눈으로 확인하고 승인합니다. 구조와 데이터 흐름은 [HOW_IT_WORKS.ko.md](HOW_IT_WORKS.ko.md)를 참고하세요.
 
 > **지원 범위:** Amazon 주문(Amazon MCP 서버가 대신 읽어 옵니다)과 직접 스캔하거나 저장한 영수증(병원 청구서, 약국·매장 영수증)입니다. 다른 온라인 매장의 계정은 자동으로 읽지 않습니다.
 
@@ -46,15 +46,15 @@
 
 ## HSA 소개와 이 도구가 필요한 이유
 
-**HSA**는 자격이 되는 의료비를 위한 세전 저축 계좌입니다. 납입하려면 **고공제 건강보험(HDHP)**에 가입되어 있어야 하며, 쓰지 않은 돈은 다음 해로 이월됩니다([Healthcare.gov](https://www.healthcare.gov/high-deductible-health-plan/), [HSA 개설](https://www.healthcare.gov/high-deductible-health-plan/setting-up-hsa/)). 자격이 되는 의료비로 인출하면 세금이 없고, 그 밖의 인출은 일반적으로 과세되며 20% 추가 세금이 붙을 수 있습니다([IRS Pub. 969](https://www.irs.gov/publications/p969)).
+**HSA**는 적격 의료비에 쓰는 세전 저축 계좌입니다. 납입하려면 **고공제 건강보험(HDHP)**에 가입되어 있어야 하며, 쓰지 않은 돈은 다음 해로 이월됩니다([Healthcare.gov](https://www.healthcare.gov/high-deductible-health-plan/), [HSA 개설](https://www.healthcare.gov/high-deductible-health-plan/setting-up-hsa/)). 적격 의료비로 인출하면 세금이 없고, 그 밖의 인출은 일반적으로 과세되며 20% 추가 세금이 붙을 수 있습니다([IRS Pub. 969](https://www.irs.gov/publications/p969)).
 
-**검토 도구가 필요한 이유.** 한 가정이 1년에 Amazon에서 수백 건을 주문할 수 있고, 그중 일부만 자격이 됩니다.
+**검토 도구가 필요한 이유.** 한 가정이 1년에 Amazon에서 수백 건을 주문할 수 있고, 그중 일부만 적격입니다.
 - **항목별 판단:** 일반적으로 주된 목적이 의학적 상태를 진단, 치료, 완화 또는 예방하는 것이어야 하며, 단순히 건강에 좋은 정도로는 안 됩니다([IRS Pub. 502](https://www.irs.gov/publications/p502)).
 - **일반의약품(OTC)**은 2020년부터 처방전 없이도 인정됩니다([IRS 요약](https://www.irs.gov/newsroom/irs-outlines-changes-to-health-care-spending-available-under-cares-act)). Pub. 502만 보면 예전 규정이 나와 있습니다.
 - **용도가 겹치는 물품**(마사지 도구, 공기청정기 등)은 의료진의 의료 필요성 증명서(LMN)가 필요할 수 있습니다.
 - **기록:** 항목별로 적힌 영수증을 보관하세요. 같은 비용을 두 번 환급받을 수 없으며, HSA를 개설한 이후에 발생한 비용이어야 합니다(Pub. 969).
 
-도구는 제안만 하고 결정은 여러분이 하며, 어떤 데이터도 컴퓨터 밖으로 나가지 않습니다. 이는 분류를 돕는 도구이지 세무 자문이 아닙니다. 도구가 쓰는 요약본은 출처와 검토 날짜와 함께 [`eligibility_reference.md`](skills/hsa-categorize/eligibility_reference.md)(영어)에 있습니다.
+도구는 제안만 하고 결정은 사용자가 하며, 어떤 데이터도 컴퓨터 밖으로 나가지 않습니다. 이는 분류를 돕는 도구이지 세무 자문이 아닙니다. 도구가 쓰는 요약본은 출처와 검토 날짜와 함께 [`eligibility_reference.md`](skills/hsa-categorize/eligibility_reference.md)(영어)에 있습니다.
 
 ---
 
@@ -90,16 +90,16 @@ Chrome과 Edge에서는 검토 페이지가 브라우저의 기본 파일 접근
 
 ## 동작 방식
 
-전체 구조, 구성 요소의 역할("누가 무엇을 하나"), MCP 동작 원리는 **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)**(영어)를 참고하세요.
+전체 구조, 구성 요소의 역할("누가 무엇을 하나"), MCP 동작 원리는 **[HOW_IT_WORKS.ko.md](HOW_IT_WORKS.ko.md)**를 참고하세요.
 
-전체 흐름은 AI 어시스턴트의 파일 처리 능력과 여러분의 시각적 검토를 결합한 것입니다.
+전체 흐름은 AI 어시스턴트의 파일 처리 능력과 사용자의 시각적 검토를 결합한 것입니다.
 
 ```text
  1. 로그인 (처음 한 번)
     └── 브라우저 창에서 로그인합니다. 세션 쿠키는 ~/.amazon-orders-mcp/ 에만 저장됩니다
 
  2. 데이터 수집 (LLM + MCP)
-    ├── Amazon에 접속하는 요청마다 여러분이 승인합니다
+    ├── Amazon에 접속하는 요청마다 사용자가 승인합니다
     ├── MCP 서버가 주문 페이지를 읽고 인보이스 PDF를 receipts/ 에 내려받습니다
     └── 병원 청구서나 약국 영수증을 receipts/ 에 넣으면 어시스턴트가 이름을 자동으로 붙입니다
 
@@ -131,10 +131,10 @@ Chrome과 Edge에서는 검토 페이지가 브라우저의 기본 파일 접근
 
 ### 안전 장치
 - **읽기 전용:** 도구는 주문 내역과 공개 상품 페이지만 살펴봅니다. 구매하거나, 장바구니에 담거나, 계정 설정을 바꾸지 않습니다.
-- **명시적 승인:** 어시스턴트는 Amazon에 접속하는 요청을 하기 전에 반드시 여러분의 확인을 받아야 합니다.
+- **명시적 승인:** 어시스턴트는 Amazon에 접속하는 요청을 하기 전에 반드시 사용자의 확인을 받아야 합니다.
 - **비공식, 본인 계정 전용:** Amazon과 제휴하거나 Amazon의 보증을 받은 프로젝트가 아닙니다. 본인 계정을 본인의 로그인으로, 본인의 기록을 위해서만 읽습니다. Amazon 이용약관이 자동화된 접근을 제한할 수 있으니 약관을 확인하고 본인 책임하에 사용하세요.
 - **세션 만료:** 주문 페이지는 최근 1시간 안에 활성화된 Amazon 세션이 필요합니다.
-- **설정과 동작 원리:** [`.mcp.json.example`](.mcp.json.example)을 `.mcp.json`으로 복사하거나 사용하는 클라이언트에서 설정하세요. 설정은 [`mcp/amazon-orders/README.md`](mcp/amazon-orders/README.md), 내부 데이터 흐름은 [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md)를 참고하세요(영어).
+- **설정과 동작 원리:** [`.mcp.json.example`](.mcp.json.example)을 `.mcp.json`으로 복사하거나 사용하는 클라이언트에서 설정하세요. 설정은 [`mcp/amazon-orders/README.md`](mcp/amazon-orders/README.md)(영어), 내부 데이터 흐름은 [`HOW_IT_WORKS.ko.md`](HOW_IT_WORKS.ko.md)를 참고하세요.
 
 ---
 
@@ -143,11 +143,11 @@ Chrome과 Edge에서는 검토 페이지가 브라우저의 기본 파일 접근
 | 문서 / 폴더 | 역할 |
 |---|---|
 | [`review.html`](review.html) | 항목 검토, 메모 편집, 청구 내보내기를 하는 웹 대시보드입니다. Python 없이 Chrome/Edge에서 바로 실행됩니다. |
-| [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) | 기술 구조, 구성 요소의 역할("누가 무엇을 하나"), 데이터 흐름도, MCP 동작 원리, 데이터 폴더 구성, 이월 규칙, 로그 한도(영어). |
+| [`HOW_IT_WORKS.ko.md`](HOW_IT_WORKS.ko.md) | 기술 구조, 구성 요소의 역할("누가 무엇을 하나"), 데이터 흐름도, MCP 동작 원리, 데이터 폴더 구성, 이월 규칙, 로그 한도. |
 | [`AGENTS.md`](AGENTS.md) | AI 어시스턴트의 기본 규칙서입니다. 설정 단계, 도구 호출, 안전 한계를 다룹니다(영어). |
 | [`mcp/amazon-orders/`](mcp/amazon-orders/README.md) | Amazon Orders MCP 서버 코드, 도구 정의, 등록 안내입니다. |
 | [`skills/`](skills/) | AI 어시스턴트를 위한 작업별 안내서입니다(`hsa-review`, `hsa-setup`, `amazon-live-batch`, `hsa-categorize`, `hsa-reports`, `hsa-organize-files`). |
-| [`skills/hsa-categorize/eligibility_reference.md`](skills/hsa-categorize/eligibility_reference.md) | IRS Publication 502의 적격 기준과 자격이 되는 의료비 범주를 정리한 참고 자료입니다(영어). |
+| [`skills/hsa-categorize/eligibility_reference.md`](skills/hsa-categorize/eligibility_reference.md) | IRS Publication 502의 적격 기준과 적격 의료비 범주를 정리한 참고 자료입니다(영어). |
 | [`templates/`](templates/) | 새 과세 연도를 시작할 때 쓰는 예시 JSON 구조 파일입니다. |
 | [`samples/`](samples/) | 테스트와 30초 체험에 쓰는 공개용 가상 데이터입니다. |
 
