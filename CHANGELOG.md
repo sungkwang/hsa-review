@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `live_smoke_test.py --no-year-list` runs the live check with one order page and one product page.
 - **Choose receipts folder** is the one folder button, at the top. The page resets only if you pick a different folder. Before a folder is chosen, the page shows only a welcome message and "What to do first".
 
+- A **한국어** switch (EN | 한국어, top right of the review page) shows the page in Korean. English stays the default and the choice is remembered in the browser. The Korean text is in `review_ko.js`; a missing line there just shows the English. Product titles, your notes, and the exported CSV and PDF reports stay as they are.
+
+### Changed
+- The review page's top bar has one folder button that shows the open folder's name (and says **Choose receipts folder** before one is open); the Tax box is narrower; the gaps between sections are smaller.
+
 ### Removed
 - Unused parts of the Amazon MCP server: the `match_transactions_by_amount`, `setup_authentication` and `check_auth_status` tools, the keyring and `.env` sign-in code, the Node order lister, and `uv.lock`. Dependencies dropped: `keyring`, `python-dotenv`, and the dev extras `black`, `isort`, `mypy`.
 

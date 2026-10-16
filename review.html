@@ -106,7 +106,7 @@
     main {
       max-width: 980px;
       margin: auto;
-      padding: 8px 16px 40px;
+      padding: 8px 16px 20px;
       display: grid;
       gap: 12px;
     }
@@ -1025,7 +1025,7 @@
     }
 
     .tax-in {
-      width: 84px;
+      width: 64px;
       font-size: 16px;
       font-weight: 600;
       padding: 6px 8px;
@@ -1199,9 +1199,14 @@ a.ext:hover { background:var(--accent); color:#fff; }
 .noinv { cursor:help; }
 body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choosing #saveFile, body.choosing .status-row, body.choosing #folderName, body.choosing .toolbar, body.choosing #selectbar, body.choosing #asof, body.choosing > header ~ header, body.choosing > header ~ main { display:none; }
 .folder-group { display:inline-flex; align-items:center; gap:8px; }
-.folder-name { font-size:15px; font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.folder-name { font-size:15px; font-weight:600; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:bottom; }
+.folder-group:not(.has-folder) #folderName, .folder-group.has-folder #folderPrompt { display:none; } /* one button: the folder name once a folder is open, "Choose receipts folder" before that */
 .tax-in.pulse { box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
 .suggest { color: var(--accent); }
+html[lang="ko"] body { word-break: keep-all; overflow-wrap: break-word; } /* Korean wraps at spaces, not inside a word */
+.lang-toggle { display:inline-flex; padding:2px; border:1px solid var(--accent); border-radius:999px; background:var(--card); cursor:pointer; font-size:13px; font-weight:600; }
+.lang-toggle span { padding:3px 10px; border-radius:999px; color:var(--accent); }
+.lang-toggle[aria-checked="false"] [data-lang="en"], .lang-toggle[aria-checked="true"] [data-lang="ko"] { background:var(--accent); color:#fff; }
 </style>
 </head>
 
@@ -1209,57 +1214,57 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
   <header>
     <div class="title-row">
       <div class="title-left">
-        <h1>HSA receipt review</h1>
-        <select id="yearPick" title="Choose a year" aria-label="Year"></select>
+        <h1 data-i18n>HSA receipt review</h1>
+        <select id="yearPick" title="Choose a year" aria-label="Year" data-i18n-attrs="title,aria-label"></select>
       </div>
       <div class="title-actions">
         <span class="folder-group" id="folderGroup">
-          <span class="folder-name" id="folderName" title="Your data folder">📁 <b></b></span>
-          <button id="changeFolder" title="Choose a different HSA-Review folder (the page reloads only if you pick another one)">Choose receipts folder</button>
+          <button id="changeFolder" title="Choose a different HSA-Review folder (the page reloads only if you pick another one)" data-i18n-attrs="title"><span class="folder-name" id="folderName">📁 <b></b></span><span id="folderPrompt" data-i18n>Choose receipts folder</span></button>
         </span>
-        <label class="tax-box">Tax <input type="number" id="taxRate" step="0.01" min="0" max="30"
+        <label class="tax-box"><span data-i18n>Tax</span> <input type="number" id="taxRate" step="0.01" min="0" max="30"
             class="tax-in">%</label>
         <details class="menu">
-          <summary>Export ▾</summary>
+          <summary data-i18n>Export ▾</summary>
           <div>
-            <button id="export">Items (CSV)</button>
-            <button id="claimReport">Claim report (PDF)</button>
+            <button id="export" data-i18n>Items (CSV)</button>
+            <button id="claimReport" data-i18n>Claim report (PDF)</button>
           </div>
         </details>
-        <button id="saveFile" class="primary">Save</button>
+        <button id="saveFile" class="primary" data-i18n>Save</button>
+        <button id="langToggle" class="lang-toggle" type="button" role="switch" aria-checked="false" title="Language / 언어"><span data-lang="en">EN</span><span data-lang="ko">한국어</span></button>
       </div>
     </div>
     <div class="status-row">
       <span id="status" class="muted"></span>
       <span id="undo" class="muted"></span>
     </div>
-    <div id="loading" class="muted" style="padding:12px 16px">Loading…</div>
+    <div id="loading" class="muted" style="padding:12px 16px" data-i18n>Loading…</div>
     <div id="opener" class="opener-box" style="display:none">
-      <h2>Welcome to HSA receipt review</h2>
+      <h2 data-i18n>Welcome to HSA receipt review</h2>
       <p id="openerText">Choose your HSA-Review data folder (once).</p>
     </div>
     <details id="howto" class="howto" open>
-      <summary>What to do first</summary>
-      <p class="why-folder">The page reads and saves in the folder shown at the top (📁). If it is the wrong one, use <b>Choose receipts folder</b>; choose the folder that contains your year folders.</p>
+      <summary data-i18n>What to do first</summary>
+      <p class="why-folder" data-i18n>The page reads and saves in the folder shown at the top (📁). If it is the wrong one, use <b>Choose receipts folder</b>; choose the folder that contains your year folders.</p>
       <ol class="steps">
         <li id="step-tax">
-          <span class="what">Set Tax %</span>
-          <span class="why">Used only for items that show a price without tax. Orders with real tax data and whole-order totals don't use it.</span>
-          <button type="button" class="stepbtn" id="goTax">Go to the Tax box</button>
+          <span class="what" data-i18n>Set Tax %</span>
+          <span class="why" data-i18n>Used only for items that show a price without tax. Orders with real tax data and whole-order totals don't use it.</span>
+          <button type="button" class="stepbtn" id="goTax" data-i18n>Go to the Tax box</button>
         </li>
         <li id="step-status">
-          <span class="what">Choose a status for each item</span>
-          <span class="why">Pick Eligible, Doctor's note / LMN, or Not eligible. Likely items come first; unlikely ones are folded.</span>
-          <button type="button" class="stepbtn" id="goLists">Go to the lists</button>
+          <span class="what" data-i18n>Choose a status for each item</span>
+          <span class="why" data-i18n>Pick Eligible, Doctor's note / LMN, or Not eligible. Likely items come first; unlikely ones are folded.</span>
+          <button type="button" class="stepbtn" id="goLists" data-i18n>Go to the lists</button>
         </li>
         <li id="step-paid">
-          <span class="what">Tick Reimbursed</span>
-          <span class="why">When you are paid back from the HSA, tick <b>Reimbursed</b> on the item (or use Select all).</span>
+          <span class="what" data-i18n>Tick Reimbursed</span>
+          <span class="why" data-i18n>When you are paid back from the HSA, tick <b>Reimbursed</b> on the item (or use Select all).</span>
         </li>
         <li id="step-save">
-          <span class="what">Save</span>
-          <span class="why">Your choices go into your HSA-Review folder.</span>
-          <button type="button" class="stepbtn primary" id="howtoSave">Save</button>
+          <span class="what" data-i18n>Save</span>
+          <span class="why" data-i18n>Your choices go into your HSA-Review folder.</span>
+          <button type="button" class="stepbtn primary" id="howtoSave" data-i18n>Save</button>
         </li>
       </ol>
     </details>
@@ -1267,52 +1272,92 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
     <p class="asof" id="asof"></p>
     <div class="toolbar">
 
-      <div class="totals" id="totals"
+      <div class="totals" id="totals" data-i18n-attrs="title"
         title="Totals use item prices before tax for PDF orders. Other orders use each order's total. Decisions are kept in this browser only; use Export to save them.">
       </div>
       <span style="flex:1"></span>
 
 
     </div>
-    <div id="selectbar" class="bar"><label class="reimb-label"><input type="checkbox" id="selectAll"> Select all
-        eligible on this page</label> <span id="selectInfo" class="muted"></span></div>
+    <div id="selectbar" class="bar"><label class="reimb-label"><input type="checkbox" id="selectAll"> <span data-i18n>Select all eligible on this page</span></label> <span id="selectInfo" class="muted"></span></div>
   </header>
   <header>
-    <h1 style="margin-top:24px"><span class="warn"
+    <h1 style="margin-top:12px"><span class="warn" data-i18n-attrs="title"
         title="LMN (Letter of Medical Necessity): a doctor's letter stating the item treats a specific diagnosed condition. Needed before you claim these items.">!</span>
-      Doctor's note / LMN <span id="lmnSub" class="muted" style="font-size:15px"></span></h1>
-    <p class="sub">A provider's letter is advisable for these. They are still reimbursable; the letter matters if
-      records are questioned.</p>
+      <span data-i18n>Doctor's note / LMN</span> <span id="lmnSub" class="muted" style="font-size:15px"></span></h1>
+    <p class="sub" data-i18n>A provider's letter is advisable for these. They are still reimbursable; the letter matters if records are questioned.</p>
   </header>
   <main id="lmn"></main>
   <header>
-    <h1 style="margin-top:24px">🩺 Medical receipts (from the year folder) <span id="medSub" class="muted"
-        style="font-size:15px"></span> <button id="deductibleReport">Deductible evidence (PDF)</button></h1>
+    <h1 style="margin-top:12px"><span data-i18n>🩺 Medical receipts (from the year folder)</span> <span id="medSub" class="muted"
+        style="font-size:15px"></span> <button id="deductibleReport" data-i18n>Deductible evidence (PDF)</button></h1>
   </header>
   <main id="medical"></main>
   <header>
-    <h1 style="margin-top:24px">🏪 Store receipts <span id="storeSub" class="muted" style="font-size:15px"></span></h1>
+    <h1 style="margin-top:12px"><span data-i18n>🏪 Store receipts</span> <span id="storeSub" class="muted" style="font-size:15px"></span></h1>
     <div id="countbar" class="bar"></div>
-    <h3 class="sub-h">Confirmed: Amazon-marked items</h3>
-    <p class="sub">Amazon marks these as FSA/HSA eligible. The item price is used.</p>
+    <h3 class="sub-h" data-i18n>Confirmed: Amazon-marked items</h3>
+    <p class="sub" data-i18n>Amazon marks these as FSA/HSA eligible. The item price is used.</p>
     <main id="list"></main>
-    <h3 class="sub-h" id="unconf-h">Unconfirmed: not marked by Amazon</h3>
-    <p class="sub" id="unconf-p">Amazon has not marked these as FSA/HSA eligible. Check each item before claiming. Rows that show only an order total use that total as an estimate.</p>
+    <h3 class="sub-h" id="unconf-h" data-i18n>Unconfirmed: not marked by Amazon</h3>
+    <p class="sub" id="unconf-p" data-i18n>Amazon has not marked these as FSA/HSA eligible. Check each item before claiming. Rows that show only an order total use that total as an estimate.</p>
     <main id="all"></main>
 <details id="skipped-wrap" class="fold">
-<summary>Not counted: returned, cancelled, or never charged <span id="skippedN"></span></summary>
-<p class="sub">These orders have no amount to claim. The reason comes from the order page.</p>
+<summary><span data-i18n>Not counted: returned, cancelled, or never charged</span> <span id="skippedN"></span></summary>
+<p class="sub" data-i18n>These orders have no amount to claim. The reason comes from the order page.</p>
 <div id="skipped"></div>
 </details>
     <section id="claim-report" aria-hidden="true"></section>
 
     <script src="skills/hsa-categorize/category_rules.js"></script>
+    <script src="review_ko.js"></script>
     <script>
       // Two ways to reach your data folder:
       //  - folder: double-click review.html; the page asks once for the HSA-Review folder (Chrome and Edge),
       //    remembers it, and reads and saves there directly.
       //  - served: `python tools/hsa.py open` serves the folder to any browser.
       // The page code (in #main-code) starts only when the data has arrived; a missing or broken file is named on screen.
+      // Language. English is the default and each English string is its own key; Korean is in review_ko.js (window.I18N_KO).
+      // Elements marked data-i18n are translated in place (their original text is the key); data-i18n-attrs lists attributes to translate too.
+      let LANG = "en";
+      try { if (localStorage.getItem("hsa-lang") === "ko") LANG = "ko"; } catch (e) { /* no storage: English */ }
+      /**
+       * @param {string} en English text; {name} placeholders are filled from vars
+       * @param {Object<string, string|number>} [vars]
+       * @returns {string} the text in the current language (English when there is no translation)
+       */
+      const t = (en, vars) => {
+        const s = (LANG === "ko" && window.I18N_KO && window.I18N_KO[en]) || en;
+        return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
+      };
+      function translateStatic() {
+        document.documentElement.lang = LANG;
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          if (el.dataset.en === undefined) el.dataset.en = el.innerHTML.trim();
+          el.innerHTML = t(el.dataset.en);
+        });
+        document.querySelectorAll("[data-i18n-attrs]").forEach(el => el.dataset.i18nAttrs.split(",").forEach(a => {
+          const store = "en-" + a;
+          if (!el.hasAttribute("data-" + store)) el.setAttribute("data-" + store, el.getAttribute(a) || "");
+          el.setAttribute(a, t(el.getAttribute("data-" + store)));
+        }));
+        const sw = document.getElementById("langToggle");
+        if (sw) sw.setAttribute("aria-checked", String(LANG === "ko"));
+      }
+      let OPENER = { en: "", vars: undefined }; // the welcome text is set from several places, so it is repainted on a language change
+      function setOpener(en, vars) { OPENER = { en, vars }; document.getElementById("openerText").textContent = t(en, vars); }
+      function applyLang() {
+        translateStatic();
+        if (OPENER.en) document.getElementById("openerText").textContent = t(OPENER.en, OPENER.vars);
+        if (typeof window.rerenderLang === "function") window.rerenderLang();
+      }
+      document.getElementById("langToggle").addEventListener("click", () => {
+        LANG = LANG === "ko" ? "en" : "ko";
+        try { localStorage.setItem("hsa-lang", LANG); } catch (e) { /* the choice just is not remembered */ }
+        applyLang();
+      });
+      translateStatic();
+
       const YEAR_PARAM = new URLSearchParams(location.search).get("year");
       let YEAR = /^\d{4}$/.test(YEAR_PARAM || "") ? YEAR_PARAM : null; // else the newest year folder
       let RULES, DATA_FILE, NO_DATA, SAVED_DECISIONS, DATA_AS_OF, YEAR_CONFIG, ORDERS, MEDICAL, ALL_ORDERS, SKIPPED_ORDERS, ASIN_INFO;
@@ -1425,23 +1470,23 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
           const box = document.getElementById("opener");
           const btn = document.getElementById("changeFolder"); // the one folder button, at the top
           document.getElementById("folderGroup").style.display = "";
-          const show = text => {
+          const show = (text, vars) => {
             box.style.display = "";
             document.body.classList.add("choosing"); // only the folder button and the instructions show until a folder is open
-            document.getElementById("openerText").textContent = text;
+            setOpener(text, vars);
           };
-          show(notice || (saved ? `Click Choose receipts folder to allow access to your ${saved.name} folder, or pick another one.` : "Your receipts and decisions stay on this computer. To begin, click Choose receipts folder (top right) and pick your HSA-Review data folder (once). The page reads and saves your data there directly."));
+          show(notice || (saved ? "Click Choose receipts folder to allow access to your {name} folder, or pick another one." : "Your receipts and decisions stay on this computer. To begin, click Choose receipts folder (top right) and pick your HSA-Review data folder (once). The page reads and saves your data there directly."), { name: saved && saved.name });
           const finish = async (root) => {
             try {
               box.style.display = "none";
               document.body.classList.remove("choosing");
-              document.getElementById("loading").textContent = "Loading…";
+              document.getElementById("loading").textContent = t("Loading…");
               resolve(await loadFromFolder(root));
             } catch (e) { // not usable: forget it, say why, and let the user choose again
               try { await idbSet("root", null); } catch (x) { /* nothing to forget */ }
               saved = null;
               document.getElementById("loading").textContent = "";
-              show(e.wrongFolder ? e.message : `That folder could not be opened (${e.message}). Choose your HSA-Review folder again.`);
+              show(e.wrongFolder ? e.message : "That folder could not be opened ({msg}). Choose your HSA-Review folder again.", { msg: e.message });
             }
           };
           const pick = async () => {
@@ -1495,7 +1540,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         document.querySelectorAll('select[data-f="status"]').forEach(s => {
           s.classList.remove("st-elig", "st-not", "st-und", "lmn", "st-doc");
           if (STATUS_CLASS[s.value]) s.classList.add(STATUS_CLASS[s.value]);
-          s.title = PAPER.includes(s.value) ? LMN_TIP : "";
+          s.title = PAPER.includes(s.value) ? t(LMN_TIP) : "";
         });
       }
       let decisions = (typeof SAVED_DECISIONS !== "undefined") ? SAVED_DECISIONS : null;
@@ -1538,7 +1583,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       function suggestHtml(k, asin, marked) {
         const m = asin && PRODUCT_MEMORY[asin];
         if (!m || m.by === k || statusOf(k, marked) !== "Undecided") return "";
-        return `<div class="meta suggest" title="A suggestion from your earlier choice about this product. It is not applied.">Suggested: <b>${esc(LABEL[m.status] || m.status)}</b> (you decided this on ${esc(m.date)})</div>`;
+        return `<div class="meta suggest" title="${esc(t("A suggestion from your earlier choice about this product. It is not applied."))}">${t("Suggested: <b>{status}</b> (you decided this on {date})", { status: esc(t(LABEL[m.status] || m.status)), date: esc(m.date) })}</div>`;
       }
       const DEFAULT_OVERRIDE = {}; // starting statuses for specific items; leave empty in a fresh year
       const statusOf = (k, marked) => (decisions[k] && decisions[k].status) || DEFAULT_OVERRIDE[k] || (marked ? "Eligible" : "Undecided");
@@ -1561,7 +1606,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         return `<span class="badge">${esc(why.slice(0, i))}</span><span class="muted">${esc(why.slice(i + 2))}</span>`;
       }
       function optionsHtml(cur) {
-        return OPTIONS.map(opt => `<option value="${opt}" ${cur === opt ? "selected" : ""}>${LABEL[opt] || opt}</option>`).join("");
+        return OPTIONS.map(opt => `<option value="${opt}" ${cur === opt ? "selected" : ""}>${t(LABEL[opt] || opt)}</option>`).join("");
       }
 
       // ---- Reimbursement, rollover, threshold, and claim report ----
@@ -1575,7 +1620,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       const reimbControls = (k, status) => {
         if (!CLAIMABLE.includes(status)) return "";
         const on = isReimb(k);
-        return `<span class="reimb-wrap"><label class="reimb-label"><input type="checkbox" class="reimb-box" data-reimb="${esc(k)}"${on ? " checked" : ""}> Reimbursed</label>` +
+        return `<span class="reimb-wrap"><label class="reimb-label"><input type="checkbox" class="reimb-box" data-reimb="${esc(k)}"${on ? " checked" : ""}> ${t("Reimbursed")}</label>` +
           `<input type="date" class="reimb-date" data-reimbdate="${esc(k)}" value="${esc((decisions[k] || {}).reimbursedDate || "")}"${on ? "" : " hidden"}></span>`;
       };
       const orderCounted = o => o.items.reduce((t, it, i) => {
@@ -1584,11 +1629,11 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       }, 0);
       const ovrTotalHtml = k => {
         const v = (decisions[k] || {}).amount;
-        return `<span class="ovr-in"><span class="g">$</span><input type="text" inputmode="decimal" class="ovr-total" data-ovr="${esc(k)}" value="${amtOf(k).toFixed(2)}" title="Edit the amount to count"><button type="button" class="ovr-reset" data-reset="${esc(k)}" title="Back to the receipt amount (${money(baseAmt[k])})"${v === undefined ? ' style="visibility:hidden" tabindex="-1"' : ""}>↺</button><span class="edited"${v === undefined ? ' style="visibility:hidden"' : ""}>edited</span></span>`;
+        return `<span class="ovr-in"><span class="g">$</span><input type="text" inputmode="decimal" class="ovr-total" data-ovr="${esc(k)}" value="${amtOf(k).toFixed(2)}" title="${esc(t("Edit the amount to count"))}"><button type="button" class="ovr-reset" data-reset="${esc(k)}" title="${esc(t("Back to the receipt amount ({amt})", { amt: money(baseAmt[k]) }))}"${v === undefined ? ' style="visibility:hidden" tabindex="-1"' : ""}>↺</button><span class="edited"${v === undefined ? ' style="visibility:hidden"' : ""}>${t("edited")}</span></span>`;
       };
       const ovrHtml = k => {
         const v = (decisions[k] || {}).amount;
-        return `<input type="text" inputmode="decimal" class="ovr-amt" data-ovr="${esc(k)}" value="" placeholder="edit" title="Enter the amount to count"><button type="button" class="ovr-reset" data-reset="${esc(k)}" title="Back to the receipt amount (${money(baseAmt[k])})"${v === undefined ? ' style="visibility:hidden" tabindex="-1"' : ""}>↺</button>`;
+        return `<input type="text" inputmode="decimal" class="ovr-amt" data-ovr="${esc(k)}" value="" placeholder="edit" title="Enter the amount to count"><button type="button" class="ovr-reset" data-reset="${esc(k)}" title="${esc(t("Back to the receipt amount ({amt})", { amt: money(baseAmt[k]) }))}"${v === undefined ? ' style="visibility:hidden" tabindex="-1"' : ""}>↺</button>`;
       };
       // Order-total rows get the override in their control row; item rows put it beside the price
       const reimbHtml = (k, status) => reimbControls(k, status);
@@ -1621,7 +1666,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       function showUndo(count, before) {
         undoState = before;
         const el = document.getElementById("undo");
-        el.innerHTML = `Changed ${count} item${count === 1 ? "" : "s"}. <a href="#" id="undoLink">Undo</a>`;
+        el.innerHTML = t(count === 1 ? "Changed 1 item. <a href=\"#\" id=\"undoLink\">Undo</a>" : "Changed {n} items. <a href=\"#\" id=\"undoLink\">Undo</a>", { n: count });
         clearTimeout(undoTimer);
         undoTimer = setTimeout(() => { undoState = null; el.innerHTML = ""; }, 30000);
       }
@@ -1639,7 +1684,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       function selectAllVisible(on) {
         const boxes = [...document.querySelectorAll("input.reimb-box")].filter(b => b.checked !== on && !PAPER.includes((decisions[b.dataset.reimb] || {}).status));
         if (!boxes.length) return;
-        if (!confirm(`${on ? "Mark" : "Unmark"} ${boxes.length} item(s) as reimbursed?`)) return refreshAll();
+        if (!confirm(t(on ? "Mark {n} item(s) as reimbursed?" : "Unmark {n} item(s) as reimbursed?", { n: boxes.length }))) return refreshAll();
         const before = {};
         boxes.forEach(b => {
           const k = b.dataset.reimb, d = Object.assign({}, decisions[k]);
@@ -1662,7 +1707,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         all.checked = rows.length > 0 && done.length === rows.length;
         all.indeterminate = done.length > 0 && done.length < rows.length;
         all.disabled = rows.length === 0;
-        document.getElementById("selectInfo").textContent = `${done.length} of ${rows.length} reimbursed · ${money(sum(done))} of ${money(sum(rows))}`;
+        document.getElementById("selectInfo").textContent = t("{done} of {all} reimbursed · {a} of {b}", { done: done.length, all: rows.length, a: money(sum(done)), b: money(sum(rows)) });
       }
       function refreshAll() { render(); renderOther(); renderMedical(); renderLMN(); syncSelectAll(); }
       function updateTotals() {
@@ -1678,34 +1723,34 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         // Colour rule everywhere: green = still available to claim, red = already reimbursed
         const avail = list => list.filter(r => !isReimb(r.k)).reduce((t, r) => t + r.amount, 0);
         const done = list => list.filter(r => isReimb(r.k)).reduce((t, r) => t + r.amount, 0);
-        const split = list => `Subtotal: <span class="g">${money(avail(list))}</span>, Reimbursed: <span class="r">${money(done(list))}</span>`;
+        const split = list => t("Subtotal: <span class=\"g\">{a}</span>, Reimbursed: <span class=\"r\">{b}</span>", { a: money(avail(list)), b: money(done(list)) });
         const pdfRows = totalRows.filter(r => r.kind === "pdf");
         const otherRows = totalRows.filter(r => r.kind === "other");
         const medRows = totalRows.filter(r => r.kind === "med");
         document.getElementById("totals").innerHTML = `
     <div class="eq-row">
-      <div><div class="label">Eligible this year</div><div class="eq-g">${money(eligible)}</div></div>
+      <div><div class="label">${t("Eligible this year")}</div><div class="eq-g">${money(eligible)}</div></div>
       <span class="eq-op">+</span>
-      <div><div class="label">Prior-year rollover</div><div class="eq-g">${money(prior)}</div></div>
+      <div><div class="label">${t("Prior-year rollover")}</div><div class="eq-g">${money(prior)}</div></div>
       <span class="eq-op">−</span>
-      <div><div class="label">Reimbursed this year</div><div class="eq-r">${money(reimbursed)}</div></div>
+      <div><div class="label">${t("Reimbursed this year")}</div><div class="eq-r">${money(reimbursed)}</div></div>
       <span class="eq-op">=</span>
-      <div><div class="label">Not yet reimbursed</div><div class="eq-g">${money(prior + notYet)}</div></div>
+      <div><div class="label">${t("Not yet reimbursed")}</div><div class="eq-g">${money(prior + notYet)}</div></div>
     </div>
 `;
         const paperRows = rows.filter(r => PAPER.includes((decisions[r.k] || {}).status));
-        document.getElementById("lmnSub").innerHTML = paperRows.length ? `· ${paperRows.length} items · ${split(paperRows)}` : "";
+        document.getElementById("lmnSub").innerHTML = paperRows.length ? `· ${t("{n} items", { n: paperRows.length })} · ${split(paperRows)}` : "";
         document.getElementById("medSub").innerHTML = `· ${split(medRows)}`;
         document.getElementById("storeSub").innerHTML = `· ${split([...pdfRows, ...otherRows])}`;
         const taxBox = document.getElementById("taxRate");
-        if (taxBox) { taxBox.classList.toggle("tax-missing", taxBox.value === ""); taxBox.placeholder = "Tax %"; }
-        const t = Number(CONFIG.threshold) || 0;
+        if (taxBox) { taxBox.classList.toggle("tax-missing", taxBox.value === ""); taxBox.placeholder = t("Tax %"); }
+        const limit = Number(CONFIG.threshold) || 0;
         const pill = document.getElementById("threshold");
-        pill.hidden = !(t > 0);
-        if (t > 0) {
-          const over = eligible >= t;
+        pill.hidden = !(limit > 0);
+        if (limit > 0) {
+          const over = eligible >= limit;
           pill.className = over ? "sub over" : "sub";
-          pill.textContent = `Threshold: ${money(eligible)} of ${money(t)} eligible this year (${Math.round(eligible / t * 100)}%)${over ? " · threshold reached" : ""}`;
+          pill.textContent = t("Threshold: {a} of {b} eligible this year ({p}%)", { a: money(eligible), b: money(limit), p: Math.round(eligible / limit * 100) }) + (over ? t(" · threshold reached") : "");
         }
       }
 
@@ -1723,10 +1768,10 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
         document.body.appendChild(document.getElementById("claim-report")); // direct child of body, so print CSS keeps it
         // Large receipt images must finish loading first, or the printout shows them blank
         const imgs = [...document.querySelectorAll("#claim-report img")];
-        setStatus(imgs.length ? `Loading ${imgs.length} receipt image(s) for the PDF...` : "");
+        setStatus(imgs.length ? t("Loading {n} receipt image(s) for the PDF...", { n: imgs.length }) : "");
         await Promise.all(imgs.map(i => i.decode().catch(() => {})));
         const broken = imgs.filter(i => !i.naturalWidth).map(i => i.alt || i.src);
-        if (broken.length) { setStatus("PDF not made. Missing image(s): " + broken.join(", ")); alert("These receipt images are missing, so the PDF was not made:\n" + broken.join("\n")); return; }
+        if (broken.length) { setStatus(t("PDF not made. Missing image(s): {list}", { list: broken.join(", ") })); alert(t("These receipt images are missing, so the PDF was not made:") + "\n" + broken.join("\n")); return; }
         setStatus("");
         document.body.classList.add("printing-claim");
         window.print();
@@ -1768,7 +1813,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
           const single = visible.length === 1 ? visible[0] : null;
           const itemRow = ({ it, k }, inHead) => {
             const d = decisions[k] || {};
-            const badge = `<span class="badge ${it.marked ? "yes" : "no"}">${it.marked ? "Amazon: FSA/HSA eligible" : "Not marked"}</span>`;
+            const badge = `<span class="badge ${it.marked ? "yes" : "no"}">${it.marked ? t("Amazon: FSA/HSA eligible") : t("Not marked")}</span>`;
             const meta = `<div class="meta">${esc(it.seller)}${it.note ? " · " + esc(it.note) : ""}</div>`;
             return `<div class="item${inHead ? " noimg" : ""}">
         ${inHead ? "" : `<img class="thumb" src="${img(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`}
@@ -1779,7 +1824,7 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
           ${suggestHtml(k, it.asin, it.marked)}
           <div class="decide">
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, it.marked))}</select>
-            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="Note (e.g. receipt needed, LMN)" value="${esc(d.note || "")}">
+            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="${esc(t("Note (e.g. receipt needed, LMN)"))}" value="${esc(d.note || "")}">
             
           </div>
         </div>
@@ -1788,8 +1833,8 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
           return `<section class="order">
       <div class="order-head">
         <b>${esc(isoOf(o.date))}</b>
-        <span class="muted">Order ${orderLink(o.id, o.date)}</span>
-        ${single ? `<span class="muted">Total</span> ${ovrTotalHtml(single.k)} ${reimbControls(single.k, statusOf(single.k, single.it.marked))}` : ""}
+        <span class="muted">${t("Order {id}", { id: orderLink(o.id, o.date) })}</span>
+        ${single ? `<span class="muted">${t("Total")}</span> ${ovrTotalHtml(single.k)} ${reimbControls(single.k, statusOf(single.k, single.it.marked))}` : ""}
       </div>
 
       ${visible.map(v => itemRow(v, false)).join("")}
@@ -1827,12 +1872,12 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
       const catOf = (text, asin) => {
         const info = typeof ASIN_INFO !== "undefined" && asin ? ASIN_INFO[asin] : null;
         const a = info && amazonCat(info.path);
-        if (a) return { ...a, why: (a.unmapped ? "Other (Amazon: " : "Category: Amazon (") + info.path.join(" › ") + ")", amazon: true };
+        if (a) return { ...a, why: t(a.unmapped ? "Other (Amazon: {path})" : "Category: Amazon ({path})", { path: info.path.join(" › ") }), amazon: true };
         const head = titleHead(text);
-        for (const [re, icon, name] of CATS) { const m = re.exec(head); if (m) return { icon, name, why: `Category guessed from the word "${m[0].trim()}"` }; }
-        return { icon: "📦", name: "Other", why: "Category guessed: no matching word" };
+        for (const [re, icon, name] of CATS) { const m = re.exec(head); if (m) return { icon, name, why: t('Category guessed from the word "{w}"', { w: m[0].trim() }) }; }
+        return { icon: "📦", name: "Other", why: t("Category guessed: no matching word") };
       };
-      const catPill = (text, asin) => { const c = catOf(text, asin); return `<span class="cat${c.amazon ? "" : " guess"}" title="${esc(c.why)}">${c.icon} ${c.name}</span>`; };
+      const catPill = (text, asin) => { const c = catOf(text, asin); return `<span class="cat${c.amazon ? "" : " guess"}" title="${esc(c.why)}">${c.icon} ${t(c.name)}</span>`; };
       function suggestBadgeHtml(o) {
         if (!o.suggest) return `<span class="badge b-none">No tag</span>`;
         const cls = { Likely: "b-likely", Check: "b-check", Unlikely: "b-unlikely", Documentation: "b-doc" }[o.suggest.level] || "b-check";
@@ -1843,15 +1888,15 @@ body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choos
   const list = (typeof SKIPPED_ORDERS !== "undefined") ? SKIPPED_ORDERS : [];
   document.getElementById("skipped-wrap").style.display = list.length ? "" : "none";
   document.getElementById("skippedN").textContent = `(${list.length})`;
-  document.getElementById("skipped").innerHTML = list.map(o => `<div class="skip-row"><b>${esc(isoOf(o.date))}</b> <span class="muted">Order ${esc(o.id)}</span> <span class="badge">${esc(o.reason)}</span><div class="muted">${o.items.map(esc).join(" · ")}</div></div>`).join("");
+  document.getElementById("skipped").innerHTML = list.map(o => `<div class="skip-row"><b>${esc(isoOf(o.date))}</b> <span class="muted">${t("Order {id}", { id: esc(o.id) })}</span> <span class="badge">${esc(o.reason)}</span><div class="muted">${o.items.map(esc).join(" · ")}</div></div>`).join("");
 }
 // Links on each order: the saved invoice (from receipts/), the Amazon order page, and per item the product page. Fake sample orders (900-) and products (BFAKE) have no Amazon page.
-const productLink = asin => asin && !/^BFAKE/.test(asin) ? ` <a class="ext" href="https://www.amazon.com/dp/${esc(asin)}" target="_blank" rel="noopener">Product page</a>` : "";
+const productLink = asin => asin && !/^BFAKE/.test(asin) ? ` <a class="ext" href="https://www.amazon.com/dp/${esc(asin)}" target="_blank" rel="noopener">${t("Product page")}</a>` : "";
 const invoiceLink = (id, date) => {
   const name = `${isoOf(date)}_order_amazon_${id}.pdf`;
-  return SRC.receipts.has(name) ? `<a class="ext inv" href="#" data-inv="${esc(name)}">Invoice PDF</a>` : `<span class="muted noinv" title="Download with the next Amazon pull.">No invoice</span>`;
+  return SRC.receipts.has(name) ? `<a class="ext inv" href="#" data-inv="${esc(name)}">${t("Invoice PDF")}</a>` : `<span class="muted noinv" title="${esc(t("Download with the next Amazon pull."))}">${t("No invoice")}</span>`;
 };
-const orderLink = (id, date) => `${esc(id)} ${invoiceLink(id, date)}${/^900-/.test(id) ? "" : ` <a class="ext" href="https://www.amazon.com/gp/your-account/order-details?orderID=${esc(id)}" target="_blank" rel="noopener">Order page</a>`}`;
+const orderLink = (id, date) => `${esc(id)} ${invoiceLink(id, date)}${/^900-/.test(id) ? "" : ` <a class="ext" href="https://www.amazon.com/gp/your-account/order-details?orderID=${esc(id)}" target="_blank" rel="noopener">${t("Order page")}</a>`}`;
 const nameHtml = it => esc(it.t);
 document.addEventListener("click", async e => { // the invoice opens in a new tab, read through the picked folder (or served by the launcher)
   const a = e.target.closest("[data-inv]");
@@ -1863,7 +1908,7 @@ document.addEventListener("click", async e => { // the invoice opens in a new ta
   try {
     const file = await (await (await (await SRC.root.getDirectoryHandle(YEAR)).getDirectoryHandle("receipts")).getFileHandle(name)).getFile();
     tab.location = URL.createObjectURL(new Blob([file], { type: "application/pdf" }));
-  } catch (err) { if (tab) tab.close(); setStatus(`Could not open ${name}: ${err.message}`); }
+  } catch (err) { if (tab) tab.close(); setStatus(t("Could not open {name}: {msg}", { name, msg: err.message })); }
 });
 function unmarkedItems() {
   return ORDERS.flatMap(o => o.items.map((it, i) => ({ o, it, k: keyOf(o, i) }))).filter(x => !x.it.marked);
@@ -1874,33 +1919,33 @@ const MIXED_CATS = RULES.unlikely_categories;
 // Suggested likelihood, from fixed rules. It only sorts and folds; it never sets a decision.
 function likelihood(title, marked, asin) {
   const info = typeof ASIN_INFO !== "undefined" && asin ? ASIN_INFO[asin] : null;
-  if (info && info.fsa && !marked) return { n: 4, label: "Highly likely", why: "Amazon's product page shows FSA or HSA eligible" };
-  if (marked) return { n: 4, label: "Highly likely", why: "Amazon marks it FSA/HSA eligible" };
+  if (info && info.fsa && !marked) return { n: 4, label: "Highly likely", why: t("Amazon's product page shows FSA or HSA eligible") };
+  if (marked) return { n: 4, label: "Highly likely", why: t("Amazon marks it FSA/HSA eligible") };
   const cat = catOf(title, asin).name;
   if (cat === RULES.health_category) return { n: 3, label: "Likely", why: catOf(title, asin).why };
   const drug = DRUG_WORDS.exec(title);
-  if (drug) return { n: 3, label: "Likely", why: `Drug ingredient "${drug[0]}" in the name` };
+  if (drug) return { n: 3, label: "Likely", why: t('Drug ingredient "{w}" in the name', { w: drug[0] }) };
   const w = MED_WORDS.exec(titleHead(title));
-  if (w) return { n: 3, label: "Likely", why: `Medical word "${w[0]}" in the name` };
-  if (MIXED_CATS.includes(cat)) return { n: 2, label: "Unlikely", why: "Mixed category: " + cat };
-  return { n: 1, label: "Highly unlikely", why: "Category: " + cat };
+  if (w) return { n: 3, label: "Likely", why: t('Medical word "{w}" in the name', { w: w[0] }) };
+  if (MIXED_CATS.includes(cat)) return { n: 2, label: "Unlikely", why: t("Mixed category: {c}", { c: t(cat) }) };
+  return { n: 1, label: "Highly unlikely", why: t("Category: {c}", { c: t(cat) }) };
 }
-const chipHtml = lk => `<span class="chip" title="${esc(lk.why)}">${"●".repeat(lk.n)}${"○".repeat(4 - lk.n)} ${lk.label}</span>`;
+const chipHtml = lk => `<span class="chip" title="${esc(lk.why)}">${"●".repeat(lk.n)}${"○".repeat(4 - lk.n)} ${t(lk.label)}</span>`;
 const parseDate = d => { const t = Date.parse(d); return isNaN(t) ? 0 : t; };
 const foldOpen = {};
 function unmarkedRow({ o, it, k }) {
   const d = decisions[k] || {};
   return `<section class="order">
-      <div class="order-head"><b>${esc(isoOf(o.date))}</b><span class="muted">Order ${orderLink(o.id, o.date)}</span><span class="muted">Total</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}</div>
+      <div class="order-head"><b>${esc(isoOf(o.date))}</b><span class="muted">${t("Order {id}", { id: orderLink(o.id, o.date) })}</span><span class="muted">${t("Total")}</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}</div>
       <div class="item">
         <img class="thumb" src="${img(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
         <div>
-          <div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} <span class="badge no">Not marked</span> ${chipHtml(likelihood(it.t, false, it.asin))}</div>
+          <div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} <span class="badge no">${t("Not marked")}</span> ${chipHtml(likelihood(it.t, false, it.asin))}</div>
           <div class="title"><span>${nameHtml(it)}${productLink(it.asin)} <span class="muted">· ${esc(it.seller)}</span></span></div>
           ${suggestHtml(k, it.asin, false)}
           <div class="decide">
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, false))}</select>
-            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="Note" value="${esc(d.note || "")}">
+            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="${esc(t("Note"))}" value="${esc(d.note || "")}">
           </div>
         </div>
       </div>
@@ -1912,8 +1957,8 @@ function otherRow(o, k) {
   return `<section class="order">
       <div class="order-head">
         <b>${esc(isoOf(o.date))}</b>
-        <span class="muted">Order ${orderLink(o.id, o.date)}</span>
-        <span class="muted">Total</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}
+        <span class="muted">${t("Order {id}", { id: orderLink(o.id, o.date) })}</span>
+        <span class="muted">${t("Total")}</span> ${ovrTotalHtml(k)} ${reimbControls(k, statusOf(k, false))}
       </div>
       <div class="item">
         ${o.img ? `<img class="thumb" src="${img(o.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div></div>`}
@@ -1922,7 +1967,7 @@ function otherRow(o, k) {
           ${suggestHtml(k, o.asin, false)}
           <div class="decide">
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, false))}</select>
-            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="Note" value="${esc(d.note || "")}">
+            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="${esc(t("Note"))}" value="${esc(d.note || "")}">
           </div>
         </div>
       </div>
@@ -1949,14 +1994,14 @@ function renderOther() {
     .sort((a, b) => (rank(a) - rank(b)) || (b.lk.n - a.lk.n) || byDate(a, b));
   const unlikely = rows.filter(r => !decided(r) && r.lk.n === 2).sort(byDate);
   const highly = rows.filter(r => !decided(r) && r.lk.n === 1).sort(byDate);
-  document.getElementById("countbar").innerHTML = `<button id="showNot" class="toggle" aria-pressed="${showNotState}">Show Not eligible items: ${showNotState ? "on" : "off"}</button>
-    <b>${shown.length} likely or decided</b>
-    <span class="muted">${unlikely.length} unlikely and ${highly.length} highly unlikely are folded below.</span>`;
+  document.getElementById("countbar").innerHTML = `<button id="showNot" class="toggle" aria-pressed="${showNotState}">${t(showNotState ? "Show Not eligible items: on" : "Show Not eligible items: off")}</button>
+    <b>${t("{n} likely or decided", { n: shown.length })}</b>
+    <span class="muted">${t("{a} unlikely and {b} highly unlikely are folded below.", { a: unlikely.length, b: highly.length })}</span>`;
   const unconfDisplay = rows.length === 0 ? "none" : "";
   ["unconf-h", "unconf-p", "all"].forEach(id => { document.getElementById(id).style.display = unconfDisplay; });
   document.getElementById("all").innerHTML = shown.map(r => r.html).join("")
-    + foldHtml(2, "Unlikely: mixed category (personal care, clothing, home, food)", unlikely)
-    + foldHtml(1, "Highly unlikely: other categories (books, office, pets, kitchen, electronics)", highly);
+    + foldHtml(2, t("Unlikely: mixed category (personal care, clothing, home, food)"), unlikely)
+    + foldHtml(1, t("Highly unlikely: other categories (books, office, pets, kitchen, electronics)"), highly);
   updateTotals();
 }
 document.getElementById("all").addEventListener("toggle", e => { if (e.target.dataset && e.target.dataset.n) foldOpen[e.target.dataset.n] = e.target.open; }, true);
@@ -1996,7 +2041,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
       document.getElementById("claimReport").addEventListener("click", printClaimReport);
       document.getElementById("folderGroup").style.display = SRC.mode === "folder" ? "" : "none";
       document.querySelector("#howto .why-folder").style.display = SRC.mode === "folder" ? "" : "none"; // the note points at the folder shown at the top
-      if (SRC.root) document.querySelector("#folderName b").textContent = SRC.root.name;
+      if (SRC.root) { document.querySelector("#folderName b").textContent = SRC.root.name; document.getElementById("folderGroup").classList.add("has-folder"); }
       document.getElementById("goTax").addEventListener("click", () => { const t = document.getElementById("taxRate"); t.scrollIntoView({ block: "center" }); t.focus(); t.classList.add("pulse"); setTimeout(() => t.classList.remove("pulse"), 1500); });
       document.getElementById("goLists").addEventListener("click", () => document.getElementById("list").scrollIntoView({ behavior: "smooth", block: "start" }));
       document.getElementById("howtoSave").addEventListener("click", () => document.getElementById("saveFile").click());
@@ -2038,14 +2083,14 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
       let autoTimer = null;
       function scheduleSave() { clearTimeout(autoTimer); autoTimer = setTimeout(autoSave, 800); }
       async function writeDecisions(root) {
-        if (NO_DATA) { setStatus(`Nothing to save: no ${YEAR} data was found in this folder.`); return; }
+        if (NO_DATA) { setStatus(t("Nothing to save: no {y} data was found in this folder.", { y: YEAR })); return; }
         const yearDir = await root.getDirectoryHandle(YEAR, { create: true });
         const name = SRC.layout === "new" ? "decisions.json" : `hsa_decisions_${YEAR}.json`;
         const fh = await yearDir.getFileHandle(name, { create: true });
         const before = await (await fh.getFile()).text();
         const onDisk = Number((/"__version":\s*(\d+)/.exec(before) || [])[1]) || 0;
         if (onDisk !== loadedVersion) {
-          setStatus("Not saved: the file changed since this page loaded. Reload the page, then redo your last change.");
+          setStatus(t("Not saved: the file changed since this page loaded. Reload the page, then redo your last change."));
           return;
         }
         if (SRC.layout === "new" && before.trim()) { // the first state of each day is kept in _app/backups
@@ -2074,7 +2119,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
           await pw.close();
           productDirty = false;
         }
-        setStatus(`Saved to ${YEAR}/${name} at ` + new Date().toLocaleTimeString());
+        setStatus(t("Saved to {path} at {time}", { path: `${YEAR}/${name}`, time: new Date().toLocaleTimeString() }));
       }
       // The data folder to save into: the one already open, or the one picked on an earlier visit.
       async function saveRoot(interactive) {
@@ -2084,17 +2129,17 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
           if (!interactive || (await root.requestPermission({ mode: "readwrite" })) !== "granted") return null;
         }
         if (!root && interactive) {
-          alert("Choose your HSA-Review folder once. After this, Save writes there directly.");
+          alert(t("Choose your HSA-Review folder once. After this, Save writes there directly."));
           root = await showDirectoryPicker({ id: "hsa-review", mode: "readwrite" });
           await idbSet("root", root);
         }
         return root;
       }
       async function autoSave() {
-        if (!window.showDirectoryPicker) { setStatus("This browser cannot write to folders. Use Export (CSV)."); return; }
+        if (!window.showDirectoryPicker) { setStatus(t("This browser cannot write to folders. Use Export (CSV).")); return; }
         const root = await saveRoot(false);
-        if (!root) { setStatus("Click Save once to choose your HSA-Review folder."); return; }
-        try { await writeDecisions(root); } catch (e) { setStatus("Save failed: " + e.message); }
+        if (!root) { setStatus(t("Click Save once to choose your HSA-Review folder.")); return; }
+        try { await writeDecisions(root); } catch (e) { setStatus(t("Save failed: {msg}", { msg: e.message })); }
       }
       // Retry any unsaved change every minute (covers lost folder access or a failed write).
       setInterval(() => { if (dirty) autoSave(); }, 60000);
@@ -2103,7 +2148,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
         try {
           const root = await saveRoot(true);
           if (root) await writeDecisions(root);
-        } catch (e) { if (e.name !== "AbortError") setStatus("Save failed: " + e.message); }
+        } catch (e) { if (e.name !== "AbortError") setStatus(t("Save failed: {msg}", { msg: e.message })); }
       });
       document.getElementById("export").addEventListener("click", () => {
         const rows = [["Order Date", "Order ID", "Order Total", "Item", "Item Price", "Amazon Marked", "My Decision", "Note", "Reimbursed", "Reimbursed Date"]];
@@ -2128,7 +2173,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
         const card = (date, id, total, body, k, img_, note, store, full) => {
           const d = decisions[k] || {};
           return { d: isoOf(date), html: `<section class="order">
-      <div class="order-head"><b>${esc(isoOf(date))}</b><span class="muted">${/^Order \d/.test(id) ? `Order ${orderLink(id.slice(6), date)}` : esc(id)}</span><span class="muted">${total}</span>${total ? reimbControls(k, statusOf(k, false)) : ""}</div>
+      <div class="order-head"><b>${esc(isoOf(date))}</b><span class="muted">${/^Order \d/.test(id) ? `${t("Order {id}", { id: orderLink(id.slice(6), date) })}` : esc(id)}</span><span class="muted">${total}</span>${total ? reimbControls(k, statusOf(k, false)) : ""}</div>
       <div class="item">
         ${img_ ? `<img class="thumb" src="${esc(img_)}"${full ? ` data-full="${esc(full)}"` : ""} alt="" loading="lazy">` : `<div></div>`}
         <div>
@@ -2137,7 +2182,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
           <div class="decide">
             
             <select data-k="${esc(k)}" data-f="status">${optionsHtml(statusOf(k, false))}</select>
-            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="Note" value="${esc(d.note || "")}">
+            <input type="text" data-k="${esc(k)}" data-f="note" placeholder="${esc(t("Note"))}" value="${esc(d.note || "")}">
           </div>
         </div>
       </div>
@@ -2146,18 +2191,18 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
         ORDERS.forEach(o => o.items.forEach((it, i) => {
           const k = keyOf(o, i);
           if (!PAPER.includes(statusOf(k, it.marked))) return;
-          cards.push(card(o.date, `Order ${o.id}`, `Total ${ovrTotalHtml(k)}`, `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} ${it.marked ? "<span class=\"badge yes\">Amazon: FSA/HSA eligible</span>" : ""}</div><div class="title"><span>${nameHtml(it)} <span class="muted">· ${esc(it.seller)}</span></span></div>`, k, img(it.img), it.seller, "🛒 Amazon"));
+          cards.push(card(o.date, `Order ${o.id}`, `${t("Total")} ${ovrTotalHtml(k)}`, `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(it.t, it.asin)} ${it.marked ? `<span class="badge yes">${t("Amazon: FSA/HSA eligible")}</span>` : ""}</div><div class="title"><span>${nameHtml(it)} <span class="muted">· ${esc(it.seller)}</span></span></div>`, k, img(it.img), it.seller, "🛒 Amazon"));
         }));
         otherOrders.forEach(o => {
           const k = allKey(o);
           if (!PAPER.includes(statusOf(k, false))) return;
-          o.items.forEach((t, n) => cards.push(card(o.date, `Order ${o.id}`, `Total ${ovrTotalHtml(allKey(o))}`, `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(t, n === 0 ? o.asin : "")}</div><div class="title">${esc(t)}</div>`, k, n === 0 && o.img ? img(o.img) : "", "", "🛒 Amazon")));
+          o.items.forEach((title, n) => cards.push(card(o.date, `Order ${o.id}`, `${t("Total")} ${ovrTotalHtml(allKey(o))}`, `<div class="pills"><span class="cat">🛒 Amazon</span> ${catPill(title, n === 0 ? o.asin : "")}</div><div class="title">${esc(title)}</div>`, k, n === 0 && o.img ? img(o.img) : "", "", "🛒 Amazon")));
         });
         MEDICAL.forEach(m => {
           if (!PAPER.includes(statusOf(m.id, true))) return;
-          cards.push(card(m.date, m.provider, ovrTotalHtml(m.id), `<div class="pills"><span class="cat">🩺 Medical care</span></div><div class="title">${esc(m.who)}</div>`, m.id, asset(m.thumb), m.note, "🩺 Medical", asset((m.full || [m.thumb])[0])));
+          cards.push(card(m.date, m.provider, ovrTotalHtml(m.id), `<div class="pills"><span class="cat">${t("🩺 Medical care")}</span></div><div class="title">${esc(m.who)}</div>`, m.id, asset(m.thumb), m.note, "🩺 Medical", asset((m.full || [m.thumb])[0])));
         });
-        document.getElementById("lmn").innerHTML = cards.length ? cards.sort((a, b) => b.d.localeCompare(a.d)).map(c => c.html).join("") : '<p class="muted">No items need an LMN yet.</p>';
+        document.getElementById("lmn").innerHTML = cards.length ? cards.sort((a, b) => b.d.localeCompare(a.d)).map(c => c.html).join("") : `<p class="muted">${t("No items need an LMN yet.")}</p>`;
       }
 
       function renderMedical() {
@@ -2173,12 +2218,12 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
             <div class="item">
               <img class="thumb" src="${asset(m.thumb)}" data-full="${esc(asset((m.full || [m.thumb])[0]))}" alt="${esc(m.src)}" loading="lazy">
               <div>
-                <div class="pills"><span class="cat">🩺 Medical care</span></div>
+                <div class="pills"><span class="cat">${t("🩺 Medical care")}</span></div>
                 <div class="title">${esc(m.who)}</div>
-                <div class="meta">${esc(m.note)} · source: ${esc(m.src)}</div>
+                <div class="meta">${esc(m.note)} · ${t("source: {src}", { src: esc(m.src) })}</div>
                 <div class="decide">
                   <select data-k="${esc(m.id)}" data-f="status">${optionsHtml(statusOf(m.id, true))}</select>
-                  <input type="text" data-k="${esc(m.id)}" data-f="note" placeholder="Note" value="${esc(d.note || "")}">
+                  <input type="text" data-k="${esc(m.id)}" data-f="note" placeholder="${esc(t("Note"))}" value="${esc(d.note || "")}">
                 </div>
               </div>
             </div>
@@ -2189,12 +2234,12 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
       function showFirstRun() {
         const box = document.createElement("section");
         box.className = "firstrun";
-        box.innerHTML = `<h2>No ${esc(YEAR)} data yet</h2><p class="muted">This page fills in once your data folder has a ${esc(YEAR)} data file. Here is where you are:</p><ul id="firstrunList"><li>Checking...</li></ul>`;
+        box.innerHTML = `<h2>${t("No {y} data yet", { y: esc(YEAR) })}</h2><p class="muted">${t("This page fills in once your data folder has a {y} data file. Here is where you are:", { y: esc(YEAR) })}</p><ul id="firstrunList"><li>${t("Checking...")}</li></ul>`;
         document.getElementById("list").before(box);
         fetch(`status.json?year=${encodeURIComponent(YEAR)}`).then(r => r.json()).then(s => {
           const first = s.steps.find(x => !x.ok);
-          document.getElementById("firstrunList").innerHTML = s.steps.map(x => `<li>${x.ok ? "✅" : "⬜"} ${esc(x.name)}: ${esc(x.detail)}${x === first && x.next ? `<div class="next">Next: ${esc(x.next)}</div>` : ""}</li>`).join("");
-        }).catch(() => { document.getElementById("firstrunList").innerHTML = SRC.mode === "folder" ? `<li>${SRC.years.length ? "" : "No year folders were found in this folder. "}Is this your HSA-Review folder? Ask your agent: "open my HSA review", or run <b>python tools/hsa.py setup</b>.</li>` : "<li>Run <b>python tools/hsa.py status</b> to see the steps.</li>"; });
+          document.getElementById("firstrunList").innerHTML = s.steps.map(x => `<li>${x.ok ? "✅" : "⬜"} ${esc(x.name)}: ${esc(x.detail)}${x === first && x.next ? `<div class="next">${t("Next: {x}", { x: esc(x.next) })}</div>` : ""}</li>`).join("");
+        }).catch(() => { document.getElementById("firstrunList").innerHTML = SRC.mode === "folder" ? `<li>${SRC.years.length ? "" : t("No year folders were found in this folder.") + " "}${t("Is this your HSA-Review folder? Ask your agent: \"open my HSA review\", or run <b>python tools/hsa.py setup</b>.")}</li>` : `<li>${t("Run <b>python tools/hsa.py status</b> to see the steps.")}</li>`; });
       }
       if (NO_DATA) showFirstRun();
       render();
@@ -2207,8 +2252,19 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
 document.getElementById("taxRate").value = taxPct() || "";
       document.getElementById("taxRate").classList.toggle("tax-missing", document.getElementById("taxRate").value === "");
       paintSteps();
-      document.getElementById("asof").textContent = `Data pulled ${DATA_AS_OF.pulled}; Amazon orders through ${DATA_AS_OF.through}. ${DATA_AS_OF.yearComplete ? "Full year." : YEAR + " is not complete (mid-year pull)."}`;
-      document.title = "HSA Receipt Review " + YEAR;
+      function paintPageText() {
+        document.getElementById("asof").textContent = t("Data pulled {a}; Amazon orders through {b}. {tail}", { a: DATA_AS_OF.pulled, b: DATA_AS_OF.through, tail: DATA_AS_OF.yearComplete ? t("Full year.") : t("{y} is not complete (mid-year pull).", { y: YEAR }) });
+        document.title = t("HSA Receipt Review {y}", { y: YEAR });
+      }
+      paintPageText();
+      // The language switch calls this: repaint everything the page builds itself
+      window.rerenderLang = () => {
+        refreshAll();
+        renderSkipped();
+        paintPageText();
+        const fr = document.querySelector(".firstrun");
+        if (fr) { fr.remove(); showFirstRun(); }
+      };
       // Years that have a data folder. Add a year here when its folder is created.
       const YEARS = SRC.years.map(Number);
       const yearPick = document.getElementById("yearPick");

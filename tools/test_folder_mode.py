@@ -273,13 +273,14 @@ def test_a_finished_step_shows_a_check_mark(site):
     assert page.locator("#step-save.done").count() == 1  # nothing left unsaved
 
 
-def test_the_folder_group_shows_the_folder_name_and_an_outlined_change_button(site):
+def test_one_outlined_folder_button_shows_the_folder_name_once_a_folder_is_open(site):
     browser, url = site
     page = open_page(browser, url)
+    assert page.locator("#changeFolder").inner_text().strip() == "Choose receipts folder"  # no folder yet: the button says what it does
     choose_folder(page)
-    assert page.locator("#folderName").inner_text().strip() == "📁 HSA-Review"
+    assert page.locator("#changeFolder").inner_text().strip() == "📁 HSA-Review"  # folder open: the same button shows its name
     style = page.evaluate("(() => { const s = getComputedStyle(document.getElementById('changeFolder')); return [s.borderTopWidth, parseInt(s.fontWeight), s.fontSize]; })()")
-    assert style == ["2px", 700, "15px"] and page.locator("#changeFolder").inner_text() == "Choose receipts folder"
+    assert style == ["2px", 700, "15px"]
 
 
 def test_header_layout_year_beside_title_then_folder_tax_export_save(site):
@@ -287,9 +288,9 @@ def test_header_layout_year_beside_title_then_folder_tax_export_save(site):
     page = open_page(browser, url)
     choose_folder(page)
     box = lambda sel: page.locator(sel).first.bounding_box()  # noqa: E731
-    parts = [box(sel) for sel in ("h1", "#yearPick", "#folderName", "#changeFolder", ".tax-box", ".menu > summary", "#saveFile")]
+    parts = [box(sel) for sel in ("h1", "#yearPick", "#changeFolder", ".tax-box", ".menu > summary", "#saveFile", "#langToggle")]
     xs = [b["x"] for b in parts]
-    assert xs == sorted(xs)  # title, year, folder, Choose receipts folder, Tax, Export, Save
+    assert xs == sorted(xs)  # title, year, folder button, Tax, Export, Save, language switch
     centres = [b["y"] + b["height"] / 2 for b in parts]
     assert max(centres) - min(centres) < 3  # one line, centred together
 

@@ -93,6 +93,34 @@ def test_loads_without_errors(page):
     assert page.errors == []
 
 
+def test_language_switch_shows_korean_then_english_and_remembers_the_choice(page):
+    switch = page.locator("#langToggle")
+    assert switch.get_attribute("aria-checked") == "false" and page.locator("h1").first.inner_text() == "HSA receipt review"
+    switch.click()
+    assert switch.get_attribute("aria-checked") == "true" and page.locator("html").get_attribute("lang") == "ko"
+    assert page.locator("h1").first.inner_text() == "HSA 영수증 검토"
+    assert page.locator(".eq-row .label").first.inner_text() == "올해 적격 금액"
+    assert "의사 소견서" in page.locator("#lmn select").first.inner_text()  # status choices are translated; the saved values are not
+    assert page.locator(".eq-g").first.inner_text() == "$60.00"  # amounts do not change with the language
+    page.reload()
+    page.wait_for_selector("#loading", state="detached", timeout=15000)
+    assert page.locator("h1").first.inner_text() == "HSA 영수증 검토"  # remembered
+    page.locator("#langToggle").click()
+    assert page.locator("h1").first.inner_text() == "HSA receipt review" and page.locator(".eq-g").first.inner_text() == "$60.00"
+    assert page.errors == []
+
+
+def test_every_text_on_the_page_has_a_korean_translation(page):
+    missing = page.evaluate("""() => {
+        const miss = new Set();
+        window.I18N_KO = new Proxy(window.I18N_KO, { get(t, k) { if (typeof k === 'string' && !(k in t)) miss.add(k); return t[k]; } });
+        document.getElementById('langToggle').click();
+        document.querySelectorAll('details.fold').forEach(d => d.open = true);
+        return [...miss];
+    }""")
+    assert missing == []
+
+
 def test_every_section_has_its_item(page):
     assert page.locator("#lmn .order").count() == 1          # Doctor's note / LMN
     assert page.locator("#medical .order").count() == 1       # medical receipt

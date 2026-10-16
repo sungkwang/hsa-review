@@ -39,6 +39,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return str(CODE_DIR / "review.html")
         if clean == "/skills/hsa-categorize/category_rules.js":  # the shared rules (part of the program, not your data)
             return str(CODE_DIR / "skills" / "hsa-categorize" / "category_rules.js")
+        if clean == "/review_ko.js":  # the Korean text for the page's language switch
+            return str(CODE_DIR / "review_ko.js")
         if clean.startswith("/data/"):
             target = (self.data_dir / clean[len("/data/"):].lstrip("/")).resolve()
             if target == self.data_dir or self.data_dir in target.parents:
