@@ -73,7 +73,14 @@ def page(tmp_path):
                 pg.goto(url, wait_until="load", timeout=15000)
             except playwright_sync.TimeoutError:  # a stalled load: say which requests never finished, then try once more
                 stuck = [u.replace(f"http://127.0.0.1:{port}", "") for u in pending]
-                print("STALLED LOAD, unfinished requests:", stuck, "| server alive:", server.poll() is None)
+                import time as _t, urllib.request as _u
+                t0 = _t.time()
+                try:  # does the server answer a plain request while the browser is stuck?
+                    _u.urlopen(url, timeout=5).close()
+                    probe = f"server answered Python in {_t.time() - t0:.2f}s"
+                except Exception as e:
+                    probe = f"server did NOT answer Python ({type(e).__name__})"
+                print("STALLED LOAD, unfinished requests:", stuck, "| server alive:", server.poll() is None, "|", probe)
                 pg.goto(url, wait_until="load", timeout=30000)
             pg.wait_for_selector("#loading", state="detached", timeout=15000)  # data and rules have loaded and the page code has run
             yield pg

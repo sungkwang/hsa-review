@@ -100,7 +100,7 @@ def open_page(browser, url, layout="new", data=None):
 
 
 def choose_folder(page):
-    page.click("#openerBtn")
+    page.click("#changeFolder")
     page.wait_for_selector("#loading", state="detached", timeout=15000)
 
 
@@ -109,7 +109,7 @@ def test_the_page_asks_for_the_folder_then_reads_it_and_shows_images(site):
     data = copy.deepcopy(DATA)
     data["ORDERS"][0]["items"][0]["img"] = "abc"
     page = open_page(browser, url, data=data)
-    assert "Choose your HSA-Review" in page.locator("#openerBtn").inner_text()
+    assert "Choose receipts folder" in page.locator("#openerText").inner_text()
     choose_folder(page)
     assert page.errors == []
     assert page.locator("#list .order").count() == 1 and page.locator("#lmn .order").count() == 1
@@ -166,25 +166,132 @@ def test_the_older_flat_layout_still_opens_and_saves_to_its_own_file_name(site):
     page.wait_for_function("document.getElementById('status').textContent.startsWith('Saved to 2099/hsa_decisions_2099.json')", timeout=10000)
 
 
-def test_the_folder_box_sits_below_the_header_and_the_instructions_start_with_choosing_the_folder(site):
+REPEAT = copy.deepcopy(DATA)  # the same product (BFAKE00010) bought in two orders
+REPEAT["ORDERS"][2]["items"][0]["asin"] = "BFAKE00010"
+REPEAT["ORDERS"].append({"date": "January 8, 2099", "id": "TEST-ORDER-4", "total": 5, "items": [{"t": "Plain Cable", "p": 5, "seller": "Seller C", "marked": False, "img": "", "asin": "BFAKE00010"}]})
+
+PUT_PRIOR_YEAR = """async ([year, name, text]) => {
+  const hsa = await (await navigator.storage.getDirectory()).getDirectoryHandle("HSA-Review");
+  const app = await (await hsa.getDirectoryHandle(year, { create: true })).getDirectoryHandle("_app", { create: true });
+  const w = await (await app.getFileHandle(name, { create: true })).createWritable();
+  await w.write(text);
+  await w.close();
+}"""
+
+
+def set_status(page, key, status):
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")  # the plain cable is in a folded list
+    page.select_option(f'select[data-k="{key}"]', status)
+    page.wait_for_timeout(200)
+
+
+def test_a_status_you_set_is_remembered_by_product_and_suggested_on_the_next_purchase(site):
+    browser, url = site
+    page = open_page(browser, url, data=REPEAT)
+    choose_folder(page)
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")
+    assert page.locator('.suggest').count() == 0  # nothing remembered yet
+    set_status(page, "TEST-ORDER-3|0", "Not eligible")
+    page.click("#saveFile")
+    page.wait_for_function("document.getElementById('status').textContent.startsWith('Saved to')", timeout=10000)
+    saved = json.loads(page.evaluate(READ_FILE, ["2099", "_app", "product_decisions.json"]))
+    assert saved == {"BFAKE00010": {"status": "Not eligible", "date": date.today().isoformat(), "by": "TEST-ORDER-3|0"}}
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")
+    later = page.locator('section.order:has(select[data-k="TEST-ORDER-4|0"])')
+    assert f"Suggested: Not eligible (you decided this on {date.today().isoformat()})" in later.inner_text()
+    assert later.locator("select").input_value() == "Undecided"  # a suggestion only: never applied by itself
+
+
+def test_suggestions_also_come_from_earlier_years(site):
+    browser, url = site
+    page = open_page(browser, url, data=REPEAT)
+    page.evaluate(PUT_PRIOR_YEAR, ["2098", "product_decisions.json", json.dumps({"BFAKE00010": {"status": "Need LMN", "date": "2098-05-26", "by": "OLD-ORDER|0"}})])
+    choose_folder(page)
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")
+    text = page.locator("#all").inner_text()
+    assert text.count("Suggested: Doctor's note / LMN (you decided this on 2098-05-26)") == 2  # both purchases of that product
+
+
+def test_setting_a_status_back_to_undecided_forgets_what_that_item_taught(site):
+    browser, url = site
+    page = open_page(browser, url, data=REPEAT)
+    choose_folder(page)
+    set_status(page, "TEST-ORDER-3|0", "Eligible")
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")
+    assert "Suggested" in page.locator('section.order:has(select[data-k="TEST-ORDER-4|0"])').inner_text()
+    assert "Suggested" not in page.locator('section.order:has(select[data-k="TEST-ORDER-3|0"])').inner_text()  # an item never suggests to itself
+    set_status(page, "TEST-ORDER-3|0", "Undecided")
+    page.evaluate("document.querySelectorAll('details.fold').forEach(d => d.open = true)")
+    assert "Suggested" not in page.locator('section.order:has(select[data-k="TEST-ORDER-4|0"])').inner_text()
+
+
+def test_the_older_flat_layout_keeps_its_product_decisions_in_its_own_file(site):
+    browser, url = site
+    page = open_page(browser, url, layout="old", data=REPEAT)
+    choose_folder(page)
+    set_status(page, "TEST-ORDER-3|0", "Eligible")
+    page.click("#saveFile")
+    page.wait_for_function("document.getElementById('status').textContent.startsWith('Saved to')", timeout=10000)
+    assert json.loads(page.evaluate(READ_FILE, ["2099", "product_decisions_2099.json"]))["BFAKE00010"]["status"] == "Eligible"
+
+
+def test_the_folder_box_sits_below_the_header(site):
     browser, url = site
     page = open_page(browser, url)  # the folder box is showing, waiting for a click
-    title, status, box = (page.locator(s).first.bounding_box() for s in ("h1", ".status-row", "#opener"))
-    assert box["y"] > title["y"] + title["height"] and box["y"] >= status["y"]  # below the title row, not above the header
-    first = page.locator("#howto li").first.inner_text()
-    assert first.startswith("Choose your data folder") and "Change data folder" in first
+    title, box = (page.locator(s).first.bounding_box() for s in ("h1", "#opener"))
+    assert box["y"] > title["y"] + title["height"]  # below the title row, not above the header
 
 
-def test_header_layout_year_beside_title_and_controls_in_the_agreed_order(site):
+def test_the_instructions_are_four_numbered_steps_in_one_row_that_explain_tax_percent(site):
+    browser, url = site
+    page = open_page(browser, url)
+    steps = page.locator("#howto ol.steps li")
+    assert steps.count() == 4
+    texts = steps.all_inner_texts()
+    assert texts[0].startswith("Set Tax %") and "price without tax" in texts[0] and "don't use it" in texts[0]
+    assert texts[1].startswith("Choose a status") and texts[2].startswith("Tick Reimbursed") and texts[3].startswith("Save")
+    assert page.locator("#howto .sp").count() == 0  # plain words, no pills
+    assert "counter(step)" == page.evaluate("getComputedStyle(document.querySelector('#howto ol.steps li'), '::before').content")
+    tops = [round(li.bounding_box()["y"]) for li in steps.all()]
+    assert len(set(tops)) == 1  # one row at the normal page width
+    assert "Choose receipts folder" in page.locator("#howto .why-folder").inner_text()  # the folder note is on top
+
+
+def test_a_finished_step_shows_a_check_mark(site):
+    browser, url = site
+    page = open_page(browser, url)
+    choose_folder(page)
+    assert page.locator("#step-tax.done").count() == 0  # Tax % is empty
+    assert page.locator("#step-save.done").count() == 1  # decisions exist and nothing is unsaved
+    page.fill("#taxRate", "7")
+    assert page.locator("#step-tax.done").count() == 1  # Tax % filled in
+    page.locator("#list input.ovr-total").first.fill("9.00")
+    page.locator("#list input.ovr-total").first.dispatch_event("change")
+    assert page.locator("#step-save.done").count() == 0  # a change is waiting to be saved
+    page.click("#howtoSave")  # the Save button inside the card
+    page.wait_for_function("document.getElementById('status').textContent.startsWith('Saved to')", timeout=10000)
+    assert page.locator("#step-save.done").count() == 1  # nothing left unsaved
+
+
+def test_the_folder_group_shows_the_folder_name_and_an_outlined_change_button(site):
+    browser, url = site
+    page = open_page(browser, url)
+    choose_folder(page)
+    assert page.locator("#folderName").inner_text().strip() == "📁 HSA-Review"
+    style = page.evaluate("(() => { const s = getComputedStyle(document.getElementById('changeFolder')); return [s.borderTopWidth, parseInt(s.fontWeight), s.fontSize]; })()")
+    assert style == ["2px", 700, "15px"] and page.locator("#changeFolder").inner_text() == "Choose receipts folder"
+
+
+def test_header_layout_year_beside_title_then_folder_tax_export_save(site):
     browser, url = site
     page = open_page(browser, url)
     choose_folder(page)
     box = lambda sel: page.locator(sel).first.bounding_box()  # noqa: E731
-    parts = [box(sel) for sel in ("h1", "#yearPick", ".tax-box", "#changeFolder", ".menu > summary", "#saveFile")]
+    parts = [box(sel) for sel in ("h1", "#yearPick", "#folderName", "#changeFolder", ".tax-box", ".menu > summary", "#saveFile")]
     xs = [b["x"] for b in parts]
-    assert xs == sorted(xs)  # title, year beside it, then Tax, Change data folder, Export, Save
+    assert xs == sorted(xs)  # title, year, folder, Choose receipts folder, Tax, Export, Save
     centres = [b["y"] + b["height"] / 2 for b in parts]
-    assert max(centres) - min(centres) < 3  # one line, centred together (the title is not lower than the controls)
+    assert max(centres) - min(centres) < 3  # one line, centred together
 
 
 def test_choosing_a_year_folder_by_mistake_is_refused_and_forgotten(site):
@@ -192,13 +299,13 @@ def test_choosing_a_year_folder_by_mistake_is_refused_and_forgotten(site):
     browser, url = site
     page = open_page(browser, url)
     page.evaluate("window.showDirectoryPicker = async () => window.__hsaRoot.getDirectoryHandle('2099')")  # the year folder itself
-    page.click("#openerBtn")
+    page.click("#changeFolder")
     page.wait_for_function("document.getElementById('openerText').textContent.includes('single year folder')", timeout=10000)
     assert page.locator("#opener").is_visible()
     assert page.evaluate(READ_FILE, ["2099", "2099", "decisions.json"]) is None  # nothing was created inside the year folder
     page.reload(wait_until="load")  # the wrong folder was forgotten, so the page asks again instead of reopening it
     page.wait_for_selector("#opener", state="visible", timeout=10000)
-    assert "Choose your HSA-Review folder" in page.locator("#openerBtn").inner_text()
+    assert "Choose receipts folder" in page.locator("#openerText").inner_text()
 
 
 def test_a_remembered_folder_that_was_renamed_is_forgotten_and_the_page_asks_again(site):
@@ -212,7 +319,7 @@ def test_a_remembered_folder_that_was_renamed_is_forgotten_and_the_page_asks_aga
     assert "could not be opened" in page.locator("#openerText").inner_text()
     assert page.locator(".load-error").count() == 0  # a plain message and a button, not a raw browser error
     page.evaluate(BUILD_FOLDER, [DATA, DECISIONS, "new", PNG])  # the folder is back (renamed again): choosing it works
-    page.click("#openerBtn")
+    page.click("#changeFolder")
     page.wait_for_selector("#loading", state="detached", timeout=15000)
     assert page.locator("#list .order").count() == 1
 
@@ -223,15 +330,34 @@ def test_reset_in_the_address_forgets_the_remembered_folder(site):
     choose_folder(page)
     page.goto(url + "&reset=1", wait_until="load")
     page.wait_for_selector("#opener", state="visible", timeout=10000)
-    assert "Choose your HSA-Review folder" in page.locator("#openerBtn").inner_text()
+    assert "Choose receipts folder" in page.locator("#openerText").inner_text()
 
 
-def test_the_menu_can_change_the_data_folder_at_any_time(site):
+def test_before_a_folder_is_chosen_only_the_welcome_the_folder_button_and_the_instructions_show(site):
+    browser, url = site
+    page = open_page(browser, url)
+    assert "Welcome to HSA receipt review" in page.locator("#opener h2").inner_text()
+    for sel in ("#yearPick", ".tax-box", ".menu", "#saveFile", ".status-row"):
+        assert not page.locator(sel).first.is_visible(), sel
+    assert page.locator("#changeFolder").is_visible() and page.locator("#howto").is_visible()
+    for sel in ("#selectbar", ".toolbar", "#lmn", "#medical", "#list", "#all", "#skipped-wrap", "#unconf-h"):
+        assert not page.locator(sel).first.is_visible(), sel  # no empty sections under the welcome box
+    choose_folder(page)
+    for sel in ("#yearPick", ".tax-box", ".menu", "#saveFile"):
+        assert page.locator(sel).first.is_visible(), sel
+
+
+def test_change_folder_resets_the_page_only_when_a_different_folder_is_chosen(site):
     browser, url = site
     page = open_page(browser, url)
     choose_folder(page)
-    page.click("#changeFolder")  # its own button, between Tax and Export
-    page.wait_for_selector("#opener", state="visible", timeout=10000)  # the folder was forgotten, so the page asks again
+    page.evaluate("window.__stay = true")
+    page.click("#changeFolder")  # the picker offers the same folder again: nothing changes
+    page.wait_for_timeout(500)
+    assert page.evaluate("window.__stay") is True
+    page.evaluate("async () => { const other = await window.__hsaRoot.getDirectoryHandle('other', { create: true }); window.showDirectoryPicker = async () => other; }")
+    page.click("#changeFolder")  # a different folder: the page reloads
+    page.wait_for_function("window.__stay !== true", timeout=10000)
 
 
 def test_save_never_creates_folders_when_no_data_was_found(site):
@@ -262,7 +388,7 @@ def test_when_opened_from_disk_the_page_offers_the_folder_picker():
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto((ROOT / "review.html").as_uri() + "?year=2099", wait_until="load")
         page.wait_for_selector("#opener", state="visible", timeout=10000)
-        assert "Choose your HSA-Review folder" in page.locator("#openerBtn").inner_text() and errors == []
+        assert "Choose receipts folder" in page.locator("#openerText").inner_text() and errors == []
         browser.close()
 
 

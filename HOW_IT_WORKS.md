@@ -13,7 +13,7 @@ Your data lives in a data folder outside this code folder, so updating or re-dow
 | `<data folder>/<year>/receipts/` | Your documents, one level, named `date_type_source_detail` | Yes. Outside the code folder. |
 | `<data folder>/<year>/reports/` | Claim PDF, evidence PDF, CSV exports | Yes. |
 | `<data folder>/<year>/decisions.json` | Your decisions and notes | Yes. |
-| `<data folder>/<year>/_app/` | Orders (`data.json`), `images/`, `product_cache.json` (Amazon categories with the date read), `backups/<date>/`, `logs/`. Not for editing. | Yes. |
+| `<data folder>/<year>/_app/` | Orders (`data.json`), `images/`, `product_cache.json` (Amazon categories with the date read), `product_decisions.json` (what you decided about each product, by product ID), `backups/<date>/`, `logs/`. Not for editing. | Yes. |
 | `samples/` (in the code folder) | Fake data in the same layout, for trying the page | No. Public. |
 | `.agent/` (in the code folder) | Developer notes and scratch | Git-ignored. |
 

@@ -1179,11 +1179,26 @@ a.ext:hover { text-decoration-thickness:2px; }
 .title-row { align-items:center; }
 .status-row { text-align:right; }
 .status-row span { display:block; text-align:right; min-height:1.4em; margin:0; }
-#changeFolder { padding:7px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:14px; cursor:pointer; }
+#changeFolder { padding:7px 14px; border-radius:8px; border:2px solid var(--accent); background:var(--card); color:var(--accent); font-size:15px; font-weight:700; cursor:pointer; }
+#changeFolder:hover { background:var(--accent); color:#fff; }
 .howto { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 14px; margin:6px 0 10px; font-size:15px; }
 .howto > summary { cursor:pointer; font-weight:600; color:var(--accent); }
-.howto ol { margin:8px 0 4px; padding-left:22px; }
-.howto li { margin:4px 0; }
+.howto .why-folder { margin:8px 0 0; font-size:15px; }
+.howto ol.steps { counter-reset: step; list-style:none; padding:0; margin:10px 0 4px; display:flex; flex-wrap:wrap; gap:14px 30px; }
+.howto ol.steps li { counter-increment: step; position:relative; flex:1 1 200px; min-width:190px; display:grid; grid-template-columns:30px 1fr; column-gap:10px; row-gap:6px; align-content:start; align-items:center; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:color-mix(in srgb, var(--accent) 5%, var(--card)); }
+.howto ol.steps li::before { content:counter(step); width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.howto ol.steps li.done::before { content:"✓"; background:var(--ok); }
+.howto ol.steps li:not(:last-child)::after { content:"→"; position:absolute; right:-27px; top:50%; transform:translateY(-50%); font-size:22px; font-weight:700; color:var(--accent); }
+.howto ol.steps .why, .howto ol.steps .stepbtn { grid-column:1 / -1; }
+.howto .what { font-weight:700; font-size:16px; }
+.howto .why { color:var(--ink); font-size:15px; }
+.stepbtn { justify-self:start; padding:5px 12px; border-radius:8px; border:1px solid var(--accent); background:var(--card); color:var(--accent); font-size:14px; font-weight:600; cursor:pointer; }
+.stepbtn.primary { background:var(--accent); color:#fff; }
+@media (max-width:700px) { .howto ol.steps li:not(:last-child)::after { display:none; } }
+body.choosing #yearPick, body.choosing .tax-box, body.choosing .menu, body.choosing #saveFile, body.choosing .status-row, body.choosing #folderName, body.choosing .toolbar, body.choosing #selectbar, body.choosing #asof, body.choosing > header ~ header, body.choosing > header ~ main { display:none; }
+.folder-group { display:inline-flex; align-items:center; gap:8px; }
+.folder-name { font-size:15px; font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tax-in.pulse { box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
 .suggest { color: var(--accent); }
 </style>
 </head>
@@ -1196,9 +1211,12 @@ a.ext:hover { text-decoration-thickness:2px; }
         <select id="yearPick" title="Choose a year" aria-label="Year"></select>
       </div>
       <div class="title-actions">
+        <span class="folder-group" id="folderGroup">
+          <span class="folder-name" id="folderName" title="Your data folder">📁 <b></b></span>
+          <button id="changeFolder" title="Choose a different HSA-Review folder (the page reloads only if you pick another one)">Choose receipts folder</button>
+        </span>
         <label class="tax-box">Tax <input type="number" id="taxRate" step="0.01" min="0" max="30"
             class="tax-in">%</label>
-        <button id="changeFolder" title="Forget the remembered folder and choose your HSA-Review folder again">Change data folder</button>
         <details class="menu">
           <summary>Export ▾</summary>
           <div>
@@ -1215,19 +1233,32 @@ a.ext:hover { text-decoration-thickness:2px; }
     </div>
     <div id="loading" class="muted" style="padding:12px 16px">Loading…</div>
     <div id="opener" class="opener-box" style="display:none">
-      <h2>HSA review</h2>
+      <h2>Welcome to HSA receipt review</h2>
       <p id="openerText">Choose your HSA-Review data folder (once).</p>
-      <button id="openerBtn" class="primary">Choose your HSA-Review folder</button>
-      <button id="openerOther" style="display:none">Choose a different folder</button>
     </div>
     <details id="howto" class="howto" open>
       <summary>What to do first</summary>
-      <ol>
-        <li><b>Choose your data folder.</b> The first time, the page asks for your <b>HSA-Review</b> folder (the folder that contains your year folders, not a year folder itself) and remembers it. To use a different folder later, or if you picked the wrong one, click <b>Change data folder</b> at the top right.</li>
-        <li><b>Look at the numbers below.</b> They add up what you can claim and update as you work. Set <b>Tax %</b> only for rows that show prices without tax.</li>
-        <li><b>Go through each list</b> (Amazon-marked, then Unconfirmed, then Medical bills). For every item choose <b>Eligible</b>, <b>Doctor's note / LMN</b>, or <b>Not eligible</b>. Likely items come first; unlikely ones are folded away.</li>
-        <li><b>When you pay yourself back,</b> tick <b>Reimbursed</b> on the item (or use Select all).</li>
-        <li>Click <b>Save</b>. Your choices are saved in your HSA-Review folder.</li>
+      <p class="why-folder">The page reads and saves in the folder shown at the top (📁). If it is the wrong one, use <b>Choose receipts folder</b>; choose the folder that contains your year folders.</p>
+      <ol class="steps">
+        <li id="step-tax">
+          <span class="what">Set Tax %</span>
+          <span class="why">Used only for items that show a price without tax. Orders with real tax data and whole-order totals don't use it.</span>
+          <button type="button" class="stepbtn" id="goTax">Go to the Tax box</button>
+        </li>
+        <li id="step-status">
+          <span class="what">Choose a status for each item</span>
+          <span class="why">Pick Eligible, Doctor's note / LMN, or Not eligible. Likely items come first; unlikely ones are folded.</span>
+          <button type="button" class="stepbtn" id="goLists">Go to the lists</button>
+        </li>
+        <li id="step-paid">
+          <span class="what">Tick Reimbursed</span>
+          <span class="why">When you are paid back from the HSA, tick <b>Reimbursed</b> on the item (or use Select all).</span>
+        </li>
+        <li id="step-save">
+          <span class="what">Save</span>
+          <span class="why">Your choices go into your HSA-Review folder.</span>
+          <button type="button" class="stepbtn primary" id="howtoSave">Save</button>
+        </li>
       </ol>
     </details>
     <p class="sub" id="threshold" hidden></p>
@@ -1384,25 +1415,25 @@ a.ext:hover { text-decoration-thickness:2px; }
         }
         return new Promise(resolve => { // the browser needs a click before it will ask
           const box = document.getElementById("opener");
-          const btn = document.getElementById("openerBtn");
-          const other = document.getElementById("openerOther");
-          const show = (text, haveSaved) => {
+          const btn = document.getElementById("changeFolder"); // the one folder button, at the top
+          document.getElementById("folderGroup").style.display = "";
+          const show = text => {
             box.style.display = "";
+            document.body.classList.add("choosing"); // only the folder button and the instructions show until a folder is open
             document.getElementById("openerText").textContent = text;
-            btn.textContent = haveSaved ? `Allow access to ${saved.name}` : "Choose your HSA-Review folder";
-            other.style.display = haveSaved ? "" : "none";
           };
-          show(notice || (saved ? `Allow access to your ${saved.name} folder?` : "Choose your HSA-Review data folder (once). The page reads and saves your data there directly."), !!saved);
+          show(notice || (saved ? `Click Choose receipts folder to allow access to your ${saved.name} folder, or pick another one.` : "Your receipts and decisions stay on this computer. To begin, click Choose receipts folder (top right) and pick your HSA-Review data folder (once). The page reads and saves your data there directly."));
           const finish = async (root) => {
             try {
               box.style.display = "none";
+              document.body.classList.remove("choosing");
               document.getElementById("loading").textContent = "Loading…";
               resolve(await loadFromFolder(root));
             } catch (e) { // not usable: forget it, say why, and let the user choose again
               try { await idbSet("root", null); } catch (x) { /* nothing to forget */ }
               saved = null;
               document.getElementById("loading").textContent = "";
-              show(e.wrongFolder ? e.message : `That folder could not be opened (${e.message}). Choose your HSA-Review folder again.`, false);
+              show(e.wrongFolder ? e.message : `That folder could not be opened (${e.message}). Choose your HSA-Review folder again.`);
             }
           };
           const pick = async () => {
@@ -1416,7 +1447,6 @@ a.ext:hover { text-decoration-thickness:2px; }
             try { if (saved && (await saved.requestPermission({ mode: "readwrite" })) === "granted") return finish(saved); } catch (e) { saved = null; }
             await pick();
           };
-          other.onclick = pick;
         });
       }
       (async () => {
@@ -1465,7 +1495,13 @@ a.ext:hover { text-decoration-thickness:2px; }
       for (const k in decisions) if (decisions[k] && decisions[k].status === "Need documentation") decisions[k].status = "Need LMN";
       for (const k in decisions) if (decisions[k] && decisions[k].status === "LMN on file") decisions[k].status = "Eligible"; // the letter is on file, so it is simply eligible
       let dirty = false;
-      const paintDirty = () => { const b = document.getElementById("saveFile"); if (b) { b.classList.toggle("unsaved", dirty); b.title = dirty ? "Unsaved changes" : ""; } };
+      // A finished step shows a check mark: Tax % filled in; nothing left unsaved (and something saved)
+      function paintSteps() {
+        const mark = (id, done) => { const el = document.getElementById(id); if (el) el.classList.toggle("done", !!done); };
+        mark("step-tax", String(document.getElementById("taxRate").value).trim() !== "");
+        mark("step-save", !dirty && Object.keys(decisions).some(k => !k.startsWith("__")));
+      }
+      const paintDirty = () => { paintSteps(); const b = document.getElementById("saveFile"); if (b) { b.classList.toggle("unsaved", dirty); b.title = dirty ? "Unsaved changes" : ""; } };
       const save = () => { dirty = true; paintDirty(); scheduleSave(); };
       window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
       const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1932,11 +1968,23 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
         document.getElementById(id).addEventListener("input", onInput);
       });
       document.getElementById("claimReport").addEventListener("click", printClaimReport);
-      document.getElementById("changeFolder").style.display = SRC.mode === "folder" ? "" : "none";
+      document.getElementById("folderGroup").style.display = SRC.mode === "folder" ? "" : "none";
+      document.querySelector("#howto .why-folder").style.display = SRC.mode === "folder" ? "" : "none"; // the note points at the folder shown at the top
+      if (SRC.root) document.querySelector("#folderName b").textContent = SRC.root.name;
+      document.getElementById("goTax").addEventListener("click", () => { const t = document.getElementById("taxRate"); t.scrollIntoView({ block: "center" }); t.focus(); t.classList.add("pulse"); setTimeout(() => t.classList.remove("pulse"), 1500); });
+      document.getElementById("goLists").addEventListener("click", () => document.getElementById("list").scrollIntoView({ behavior: "smooth", block: "start" }));
+      document.getElementById("howtoSave").addEventListener("click", () => document.getElementById("saveFile").click());
+      document.getElementById("taxRate").addEventListener("input", () => paintSteps());
       const howto = document.getElementById("howto");
       try { if (localStorage.getItem("hsa-howto") === "closed") howto.open = false; } catch (e) { /* no storage: it just stays open */ }
       howto.addEventListener("toggle", () => { try { localStorage.setItem("hsa-howto", howto.open ? "open" : "closed"); } catch (e) { /* nothing to remember */ } });
-      document.getElementById("changeFolder").addEventListener("click", async () => { try { await idbSet("root", null); } catch (e) { /* nothing stored */ } location.reload(); });
+      document.getElementById("changeFolder").onclick = async () => { // the page resets only if a different folder is chosen
+        let picked;
+        try { picked = await showDirectoryPicker({ id: "hsa-review", mode: "readwrite" }); } catch (e) { return; } // picker closed: nothing changes
+        try { const current = await idbGet("root"); if (current && await current.isSameEntry(picked)) return; } catch (e) { /* cannot compare: treat it as different */ }
+        try { await idbSet("root", picked); } catch (e) { /* the page will ask again */ }
+        location.reload();
+      };
       document.getElementById("deductibleReport").addEventListener("click", printDeductibleReport);
       document.getElementById("selectAll").addEventListener("change", e => selectAllVisible(e.target.checked));
       ["list", "all", "medical", "lmn"].forEach(id => document.getElementById(id).addEventListener("click", e => {
@@ -2132,6 +2180,7 @@ document.getElementById("all").addEventListener("toggle", e => { if (e.target.da
       renderSkipped();
 document.getElementById("taxRate").value = taxPct() || "";
       document.getElementById("taxRate").classList.toggle("tax-missing", document.getElementById("taxRate").value === "");
+      paintSteps();
       document.getElementById("asof").textContent = `Data pulled ${DATA_AS_OF.pulled}; Amazon orders through ${DATA_AS_OF.through}. ${DATA_AS_OF.yearComplete ? "Full year." : YEAR + " is not complete (mid-year pull)."}`;
       document.title = "HSA Receipt Review " + YEAR;
       // Years that have a data folder. Add a year here when its folder is created.

@@ -1,8 +1,18 @@
 # Changelog
 
-## [Unreleased] - 2026-10-15
+All notable changes to this project are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-10-16
+
+First version.
 
 ### Added
+- A "What to do first" box with numbered steps (including when to use Tax %) and a prominent **Change data folder** button.
+- The page remembers what you decide about each product by its Amazon product ID (`_app/product_decisions.json`, private, in your data folder) and, on a later purchase of the same product, shows "Suggested: <status> (you decided this on <date>)". It reads every year's file, never applies a suggestion by itself, and forgets what an item taught when you set it back to Undecided.
 - The Amazon orders MCP server now lives in `mcp/amazon-orders/` (code only; based on seanoliver/amazon-orders-mcp, MIT License, original `LICENSE` kept), with an MIT `LICENSE` for the whole repository.
 - Recovery from a wrong or renamed data folder: the page refuses a year folder, forgets a folder that can no longer be opened and asks again in plain words, and offers **Export ▾ → Change data folder…** and `?reset=1`. Save does nothing when no data was found.
 - Double-click `review.html` (Chrome or Edge): the page asks once for your HSA-Review folder, remembers it, lists the years it finds, and reads and saves there directly. `python tools/hsa.py open` and the desktop shortcut remain for other browsers. The rules also load from `skills/hsa-categorize/category_rules.js`, generated from the JSON by `tools/make_rules_js.py` and checked by a test.

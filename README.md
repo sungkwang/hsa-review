@@ -38,8 +38,10 @@ HSA-Review/
     receipts/        all your documents, one level, named YYYY-MM-DD_type_source_detail.ext
     reports/         claim PDF, evidence PDF, CSV exports
     decisions.json   your choices (the first state of each day is backed up automatically)
-    _app/            the app's own files: orders, images, product cache, backups, logs (not for editing)
+    _app/            the app's own files: orders, images, product cache, remembered product decisions, backups, logs (not for editing)
 ```
+
+When you set a product's status, the page remembers it by the product's Amazon ID (in `_app/product_decisions.json`, private, in your data folder). The next time you buy the same product, it shows "Suggested: Not eligible (you decided this on 2026-05-26)". It is only a suggestion: it never sets a status for you, and it also reads the earlier years' files.
 
 The type in a document name is one of `order`, `bill`, `receipt`, `eob`, `letter`, for example `2026-08-12_bill_ENT-clinic_visit.pdf`. Sorting by name sorts by date, and typing `_bill_` in the File Explorer search box shows only bills. `python tools/organize_files.py` names new documents for you: it prints a plan first, renames only after you add `--confirm`, keeps an undo log, and skips duplicates. A file it cannot identify keeps its name, and `python tools/hsa.py status` lists it as "not identified". An older flat layout still opens; `python tools/migrate_layout.py` moves it (plan first, verified backup, then `--confirm`).
 

@@ -27,6 +27,7 @@ def old_folder(tmp_path):
     (y / "hsa_data_2026.json").write_text(json.dumps(data), encoding="utf-8")
     (y / "hsa_decisions_2026.json").write_text('{"a|0": {"status": "Eligible"}}', encoding="utf-8")
     (y / "asin_info_2026.json").write_text("{}", encoding="utf-8")
+    (y / "product_decisions_2026.json").write_text("{}", encoding="utf-8")
     (y / "2026-01-01_900-0000001-0000001_Invoice.pdf").write_bytes(b"%PDF-fake-invoice")
     (y / "visit.pdf").write_bytes(b"%PDF-fake-visit")
     (y / "amazon_hsa_decisions_2026.csv").write_text("a,b\n", encoding="utf-8")
@@ -54,7 +55,7 @@ def test_confirm_backs_up_checks_it_and_moves_everything(old_folder):
     assert used == backup and files(backup) == before  # the backup is a complete copy of the old folder
     got = files(old_folder)
     for expected in [
-        "2026/_app/data.json", "2026/_app/README.txt", "2026/_app/product_cache.json", "2026/_app/images/a.jpg",
+        "2026/_app/data.json", "2026/_app/README.txt", "2026/_app/product_cache.json", "2026/_app/product_decisions.json", "2026/_app/images/a.jpg",
         "2026/_app/backups/2026-10-15/old.json", "2026/decisions.json",
         "2026/reports/amazon_hsa_decisions_2026.csv",
         "2026/receipts/2026-01-01_order_amazon_900-0000001-0000001.pdf",
