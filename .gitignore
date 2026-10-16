@@ -1,0 +1,25 @@
+# Private and scratch (inside the repo)
+.agent/
+__pycache__/
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# Safety net: real data lives outside this folder (see README). Anchored to the top level so
+# samples/ (fake data, committed on purpose) is not hidden.
+/20[0-9][0-9]/
+/images/
+/organize_log/
+/hsa_data_*.js
+/hsa_data_*.json
+/hsa_decisions_*.js
+/hsa_decisions_*.json
+*.before_*.js
+*.before_*.json
+personal_terms.txt
+cookies.json
+.mcp.json
+
+# Amazon browser profile, if one is ever copied here
+profile/
+profile.lock

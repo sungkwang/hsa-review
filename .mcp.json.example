@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "amazon-orders": {
+      "command": "amazon-orders-mcp"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+ "_about": "Copy to <year>/hsa_data_<year>.json. ORDERS: orders with items you can mark. MEDICAL: medical receipts. ALL_ORDERS: other Amazon orders. YEAR_CONFIG: priorUnreimbursed is eligible money carried over from earlier years; threshold is an expense total to track (0 turns it off).",
+ "DATA_AS_OF": {
+  "pulled": "YYYY-MM-DD",
+  "through": "YYYY-MM-DD",
+  "yearComplete": false
+ },
+ "YEAR_CONFIG": {
+  "priorUnreimbursed": 0,
+  "threshold": 0
+ },
+ "ORDERS": [],
+ "MEDICAL": [],
+ "ALL_ORDERS": []
+}
