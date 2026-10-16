@@ -1,10 +1,14 @@
 # HSA Receipt Review
 
+**English** | [한국어](README.ko.md)
+
 A private, local dashboard to review and organize your HSA-eligible purchases and medical receipts for taxes.
 
 A Health Savings Account (HSA) pays qualified medical expenses tax-free, but only for items that truly qualify, backed by a receipt. This tool sorts a year of purchases into eligible, doctor's note needed, and not eligible, and tracks what you have been reimbursed. [More about HSAs](#about-hsas-and-why-this-tool-exists).
 
 This project is built for **LLM users** (Claude Code, Cursor, Gemini CLI, etc.). You do not need to write or run Python scripts yourself: your AI assistant manages the files, checks status, and pulls orders in the background, while you review and approve everything in a visual browser dashboard. For technical architecture and data flow, see [HOW_IT_WORKS.md](HOW_IT_WORKS.md).
+
+> **What it covers:** Amazon orders (read for you by the Amazon MCP server) and receipts you scan or save yourself (clinic bills, pharmacy and store receipts). Other online stores' accounts are not read automatically.
 
 ---
 
@@ -24,18 +28,19 @@ Want to see how the dashboard works before setting anything up?
 | 2 | **Tax %:** sales tax added to item prices that show no tax. |
 | 3 | **Export:** claim report and CSV for your HSA administrator. |
 | 4 | **Save:** writes your decisions to `decisions.json` (turns a different color when something is unsaved). |
-| 5 | **What to do first:** the four steps: set Tax %, choose a status per item, tick Reimbursed, Save. |
-| 6 | **Data pulled / orders through:** how current the data is; warns if the year is incomplete. |
-| 7 | **Totals:** eligible this year + prior-year rollover − reimbursed = still to claim. |
-| 8 | **Select all eligible:** mark every eligible item reimbursed at once. |
-| 9 | **Doctor's note / LMN:** items that need a provider's letter. Still reimbursable. |
-| 10 | **Medical receipts:** bills from the year folder, with a **Deductible evidence (PDF)** button. |
-| 11 | **Store receipts:** Amazon orders, with a switch to show or hide Not eligible items. |
-| 12 | **Amount:** the amount to count; edit it if only part of the price qualifies (↺ resets it). |
-| 13 | **Status:** Eligible, Doctor's note / LMN, Not eligible, or Undecided. Amazon's "FSA/HSA eligible" label is only a hint. |
-| 14 | **Reimbursed:** tick when your HSA has paid you back; a date is filled in. |
+| 5 | **EN \| 한국어:** shows the page in Korean and back; your choice is remembered. Product titles, notes, and exported reports stay as they are. |
+| 6 | **What to do first:** the four steps: set Tax %, choose a status per item, tick Reimbursed, Save. |
+| 7 | **Data pulled / orders through:** how current the data is; warns if the year is incomplete. |
+| 8 | **Totals:** eligible this year + prior-year rollover − reimbursed = still to claim. |
+| 9 | **Select all eligible:** mark every eligible item reimbursed at once. |
+| 10 | **Doctor's note / LMN:** items that need a provider's letter. Still reimbursable. |
+| 11 | **Medical receipts:** bills from the year folder, with a **Deductible evidence (PDF)** button. |
+| 12 | **Store receipts:** Amazon orders, with a switch to show or hide Not eligible items. |
+| 13 | **Amount:** the amount to count; edit it if only part of the price qualifies (↺ resets it). |
+| 14 | **Status:** Eligible, Doctor's note / LMN, Not eligible, or Undecided. Amazon's "FSA/HSA eligible" label is only a hint. |
+| 15 | **Reimbursed:** tick when your HSA has paid you back; a date is filled in. |
 
-The `samples` folder holds fake 2025 data (order numbers start with `900-`), so nothing here is a real record. The screenshot omits the **Choose receipts folder** button, which sits at the top right when you open `review.html` directly.
+The `samples` folder holds fake 2025 data (order numbers start with `900-`), so nothing here is a real record. The screenshot omits the folder button, which sits at the top right when you open `review.html` directly: it shows **Choose receipts folder** until a folder is open, then the folder's name.
 
 ---
 
