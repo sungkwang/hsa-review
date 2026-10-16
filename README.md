@@ -2,6 +2,8 @@
 
 A private, local dashboard to review and organize your HSA-eligible purchases and medical receipts for taxes.
 
+A Health Savings Account (HSA) pays qualified medical expenses tax-free, but only for items that truly qualify, backed by a receipt. This tool sorts a year of purchases into eligible, doctor's note needed, and not eligible, and tracks what you have been reimbursed. [More about HSAs](#about-hsas-and-why-this-tool-exists).
+
 This project is built for **LLM users** (Claude Code, Cursor, Gemini CLI, etc.). You do not need to write or run Python scripts yourself: your AI assistant manages the files, checks status, and pulls orders in the background, while you review and approve everything in a visual browser dashboard. For technical architecture and data flow, see [HOW_IT_WORKS.md](HOW_IT_WORKS.md).
 
 ---
@@ -13,6 +15,41 @@ Want to see how the dashboard works before setting anything up?
 1. Open `review.html` in **Chrome** or **Edge**.
 2. Select the `samples` folder in this repository when prompted.
 3. Explore the dashboard with simulated receipts, eligibility filters, and claim reports. The browser reads files directly—no server or Python needed.
+
+![The review page opened on the sample folder](samples/sample-review-page.png)
+
+| # | What it is |
+|---|---|
+| 1 | **Year:** switch between tax years in your data folder. |
+| 2 | **Tax %:** sales tax added to item prices that show no tax. |
+| 3 | **Export:** claim report and CSV for your HSA administrator. |
+| 4 | **Save:** writes your decisions to `decisions.json` (turns a different color when something is unsaved). |
+| 5 | **What to do first:** the four steps: set Tax %, choose a status per item, tick Reimbursed, Save. |
+| 6 | **Data pulled / orders through:** how current the data is; warns if the year is incomplete. |
+| 7 | **Totals:** eligible this year + prior-year rollover − reimbursed = still to claim. |
+| 8 | **Select all eligible:** mark every eligible item reimbursed at once. |
+| 9 | **Doctor's note / LMN:** items that need a provider's letter. Still reimbursable. |
+| 10 | **Medical receipts:** bills from the year folder, with a **Deductible evidence (PDF)** button. |
+| 11 | **Store receipts:** Amazon orders, with a switch to show or hide Not eligible items. |
+| 12 | **Amount:** the amount to count; edit it if only part of the price qualifies (↺ resets it). |
+| 13 | **Status:** Eligible, Doctor's note / LMN, Not eligible, or Undecided. Amazon's "FSA/HSA eligible" label is only a hint. |
+| 14 | **Reimbursed:** tick when your HSA has paid you back; a date is filled in. |
+
+The `samples` folder holds fake 2025 data (order numbers start with `900-`), so nothing here is a real record. The screenshot omits the **Choose receipts folder** button, which sits at the top right when you open `review.html` directly.
+
+---
+
+## About HSAs, and Why This Tool Exists
+
+An **HSA** is a pre-tax savings account for qualified medical expenses. You need a **high-deductible health plan (HDHP)** to contribute, and unused money rolls over ([Healthcare.gov](https://www.healthcare.gov/high-deductible-health-plan/), [setting up an HSA](https://www.healthcare.gov/high-deductible-health-plan/setting-up-hsa/)). Withdrawals for qualified expenses are tax-free; other withdrawals are generally taxable and may add a 20% tax ([IRS Pub. 969](https://www.irs.gov/publications/p969)).
+
+**Why a review tool.** A household can place hundreds of Amazon orders a year, and only some items qualify:
+- **Item by item:** an expense generally qualifies when its main purpose is to diagnose, treat, ease, or prevent a medical condition, not just general health ([IRS Pub. 502](https://www.irs.gov/publications/p502)).
+- **Over-the-counter medicine** counts without a prescription since 2020 ([IRS summary](https://www.irs.gov/newsroom/irs-outlines-changes-to-health-care-spending-available-under-cares-act)); Pub. 502 alone still shows the older rule.
+- **Dual-use items** (a massage tool, an air purifier) may need a provider's letter of medical necessity (LMN).
+- **Records:** keep itemized receipts; no expense can be reimbursed twice, and it must come after the HSA was set up (Pub. 969).
+
+The tool suggests, you decide, and nothing leaves your computer. This is a sorting aid, not tax advice; the summary it uses, with sources and review date, is in [`eligibility_reference.md`](skills/hsa-categorize/eligibility_reference.md).
 
 ---
 

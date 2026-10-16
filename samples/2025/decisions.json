@@ -1,0 +1,19 @@
+{
+ "__version": 1,
+ "__note": "SAMPLE decisions, fake data",
+ "__taxRate": 7,
+ "900-0000000-0000001|0": {
+  "status": "Eligible",
+  "reimbursed": true,
+  "reimbursedDate": "2025-03-01"
+ },
+ "900-0000000-0000004|0": {
+  "status": "Need LMN"
+ },
+ "900-0000000-0000006|0": {
+  "status": "Not eligible"
+ },
+ "MED|1": {
+  "status": "Eligible"
+ }
+}

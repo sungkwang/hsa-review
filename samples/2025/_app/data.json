@@ -1,0 +1,255 @@
+{
+ "DATA_AS_OF": {
+  "pulled": "2025-10-01",
+  "through": "2025-09-30",
+  "yearComplete": false
+ },
+ "YEAR_CONFIG": {
+  "priorUnreimbursed": 120.0,
+  "threshold": 0
+ },
+ "ORDERS": [
+  {
+   "date": "February 3, 2025",
+   "id": "900-0000000-0000001",
+   "total": 7.49,
+   "items": [
+    {
+     "t": "Sample Adhesive Bandages, 100 Count",
+     "p": 7.49,
+     "seller": "Sample Health Store",
+     "marked": true,
+     "img": "sample-bandages",
+     "asin": "BFAKE00001"
+    }
+   ]
+  },
+  {
+   "date": "March 12, 2025",
+   "id": "900-0000000-0000002",
+   "total": 14.99,
+   "items": [
+    {
+     "t": "Sample Digital Thermometer",
+     "p": 14.99,
+     "seller": "Sample Health Store",
+     "marked": true,
+     "img": "sample-thermometer",
+     "asin": "BFAKE00002"
+    }
+   ]
+  },
+  {
+   "date": "April 20, 2025",
+   "id": "900-0000000-0000003",
+   "total": 18.5,
+   "items": [
+    {
+     "t": "Sample Allergy Relief Tablets, 90 Count",
+     "p": 18.5,
+     "seller": "Sample Pharmacy Direct",
+     "marked": true,
+     "img": "sample-allergy-tablets",
+     "asin": "BFAKE00003"
+    }
+   ]
+  },
+  {
+   "date": "May 6, 2025",
+   "id": "900-0000000-0000004",
+   "total": 29.99,
+   "items": [
+    {
+     "t": "Sample Heating Pad for Back Pain",
+     "p": 29.99,
+     "seller": "Sample Home Goods",
+     "marked": false,
+     "img": "sample-heating-pad",
+     "asin": "BFAKE00004"
+    }
+   ]
+  },
+  {
+   "date": "June 18, 2025",
+   "id": "900-0000000-0000005",
+   "total": 11.25,
+   "items": [
+    {
+     "t": "Sample Sunscreen SPF 50",
+     "p": 11.25,
+     "seller": "Sample Beauty Co",
+     "marked": true,
+     "img": "sample-sunscreen",
+     "asin": "BFAKE00005"
+    }
+   ]
+  },
+  {
+   "date": "July 2, 2025",
+   "id": "900-0000000-0000006",
+   "total": 34.0,
+   "items": [
+    {
+     "t": "Sample Ergonomic Desk Lamp",
+     "p": 34.0,
+     "seller": "Sample Home Goods",
+     "marked": false,
+     "img": "sample-desk-lamp",
+     "asin": "BFAKE00006"
+    }
+   ]
+  },
+  {
+   "date": "August 14, 2025",
+   "id": "900-0000000-0000007",
+   "total": 31.39,
+   "items": [
+    {
+     "t": "Sample Wrist Brace for Carpal Tunnel",
+     "p": 22.4,
+     "seller": "Sample Health Store",
+     "marked": false,
+     "img": "sample-wrist-brace",
+     "asin": "BFAKE00007"
+    },
+    {
+     "t": "Sample USB Cable, 6 ft",
+     "p": 8.99,
+     "seller": "Sample Electronics",
+     "marked": false,
+     "img": "sample-usb-cable",
+     "asin": "BFAKE00008"
+    }
+   ]
+  }
+ ],
+ "MEDICAL": [
+  {
+   "id": "MED|1",
+   "icon": "",
+   "thumb": "images/sample-ent-clinic-visit.png",
+   "who": "Sample Person",
+   "provider": "Sample ENT Clinic",
+   "date": "2025-06-09",
+   "amount": 85.0,
+   "src": "2025-06-09_bill_Sample-ENT-Clinic_visit.pdf",
+   "note": ""
+  }
+ ],
+ "ALL_ORDERS": [
+  {
+   "date": "September 3, 2025",
+   "id": "900-0000000-0000101",
+   "total": "$12.99",
+   "items": [
+    "Sample Pill Organizer, Weekly"
+   ],
+   "pdf": false,
+   "img": "sample-pill-organizer",
+   "asin": "BFAKE00009",
+   "suggest": {
+    "level": "Likely",
+    "why": "Health: pill organizer"
+   }
+  },
+  {
+   "date": "September 21, 2025",
+   "id": "900-0000000-0000102",
+   "total": "$24.00",
+   "items": [
+    "Sample Kitchen Storage Containers"
+   ],
+   "pdf": false,
+   "img": "sample-containers",
+   "asin": "BFAKE00010",
+   "suggest": {
+    "level": "Unlikely",
+    "why": "Home: kitchen"
+   }
+  }
+ ],
+ "SKIPPED_ORDERS": [
+  {
+   "date": "May 30, 2025",
+   "id": "900-0000000-0000201",
+   "reason": "Returned: refunded",
+   "items": [
+    "Sample Returned Item"
+   ]
+  }
+ ],
+ "ASIN_INFO": {
+  "BFAKE00001": {
+   "path": [
+    "Health & Household",
+    "Health Care",
+    "First Aid"
+   ],
+   "fsa": true,
+   "read": "2025-10-01"
+  },
+  "BFAKE00002": {
+   "path": [
+    "Health & Household",
+    "Health Care",
+    "Thermometers"
+   ],
+   "fsa": true,
+   "read": "2025-10-01"
+  },
+  "BFAKE00003": {
+   "path": [
+    "Health & Household",
+    "Health Care",
+    "Allergy"
+   ],
+   "fsa": true,
+   "read": "2025-10-01"
+  },
+  "BFAKE00004": {
+   "path": [
+    "Health & Household",
+    "Health Care",
+    "Heating Pads"
+   ],
+   "fsa": false,
+   "read": "2025-10-01"
+  },
+  "BFAKE00005": {
+   "path": [
+    "Beauty & Personal Care",
+    "Skin Care",
+    "Sunscreens"
+   ],
+   "fsa": true,
+   "read": "2025-10-01"
+  },
+  "BFAKE00006": {
+   "path": [
+    "Home & Kitchen",
+    "Lighting",
+    "Desk Lamps"
+   ],
+   "fsa": false,
+   "read": "2025-10-01"
+  },
+  "BFAKE00007": {
+   "path": [
+    "Health & Household",
+    "Health Care",
+    "Braces & Supports"
+   ],
+   "fsa": false,
+   "read": "2025-10-01"
+  },
+  "BFAKE00008": {
+   "path": [
+    "Electronics",
+    "Accessories",
+    "Cables"
+   ],
+   "fsa": false,
+   "read": "2025-10-01"
+  }
+ }
+}
