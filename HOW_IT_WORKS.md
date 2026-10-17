@@ -28,7 +28,7 @@ This document explains the architecture, component roles, data flow, and MCP mec
     ├── LLM checks items against IRS Publication 502 criteria
     └── Writes processed order data to <data folder>/<year>/_app/data.json
 
- 4. Review & Decide (Review Dashboard — No Python)
+ 4. Review & Decide (Review Dashboard - No Python)
     ├── You open review.html directly in Chrome or Edge
     ├── Page connects to your local data folder using native browser File System access
     ├── Set status: Eligible, Not eligible, or Need LMN

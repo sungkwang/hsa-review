@@ -18,7 +18,7 @@ Want to see how the dashboard works before setting anything up?
 
 1. Open `review.html` in **Chrome** or **Edge**.
 2. Select the `samples` folder in this repository when prompted.
-3. Explore the dashboard with simulated receipts, eligibility filters, and claim reports. The browser reads files directly—no server or Python needed.
+3. Explore the dashboard with simulated receipts, eligibility filters, and claim reports. The browser reads files directly, so no server or Python is needed.
 
 ![The review page opened on the sample folder](samples/sample-review-page.png)
 
